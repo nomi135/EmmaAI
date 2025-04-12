@@ -1,0 +1,96 @@
+<header id="header" class="header d-flex align-items-center fixed-top">
+    <div class="container-fluid container-xl position-relative d-flex align-items-center">
+        <a href="/" class="logo d-flex align-items-center me-auto">
+            <img [src]="'img/logo.png'" alt="logo">
+            <h1 class="sitename">Emma</h1>
+        </a>
+        <nav id="navmenu" class="navmenu">
+            <ul>
+                <li><a href="#about" class="active">About</a></li>
+                <li><a href="#features">Features</a></li>
+                <li><a href="#services">Services</a></li>
+                <li><a href="#faqs">FAQs</a></li>
+                <!-- <li><a href="#testimonials">Testimonials</a></li> -->
+                <li><a href="#contact">Contact</a></li>
+                @if (!accountService.currentUser()) {
+                    <li><a routerLink="/register" routerLinkActive="active">Register</a></li>
+                    <li><a routerLink="/login" routerLinkActive="active">Login</a></li>
+                }
+                @if (accountService.currentUser()) {
+                    <li><a routerLink="/agent" routerLinkActive="active">Agent</a></li>
+                    <li>
+                        <div dropdown class="dropdown">
+                            <a dropdownToggle class="dropdown-toggle">
+                              Welcome {{accountService.currentUser()?.userName}}
+                            </a>
+                            <div *dropdownMenu class="dropdown-menu">
+                              <a routerLink="/member/edit" class="dropdown-item">Edit profile</a>
+                              <div class="dropdown-divider"></div>
+                              <a href="#" class="dropdown-item" (click)="logout()">Logout</a>
+                            </div>
+                          </div>
+                    </li>
+                }        
+            </ul>
+            <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
+        </nav>
+    </div>
+</header>
+<main class="main">
+    <router-outlet></router-outlet>
+</main>
+<footer id="footer" class="footer position-relative light-background">
+    <div class="container footer-top">
+        <div class="row gy-4">
+            <div class="col-lg-4 col-md-4 footer-about">
+                <a href="#" class="logo d-flex align-items-center">
+                    <span class="sitename">Emma</span>
+                </a>
+                <div class="footer-contact">
+                    <p class="mt-3"><strong>Phone:</strong> <a class="link-no-color" href="tel:{{supportPhone.replace(' ','')}}">{{supportPhone}}</a></p>
+                    <p><strong>Email:</strong> <a class="link-no-color" href="mailto:{{supportEmail}}">{{supportEmail}}</a></p>
+                </div>
+                <div class="social-links d-flex mt-4">
+                    <a href=""><i class="bi bi-twitter-x"></i></a>
+                    <a href=""><i class="bi bi-facebook"></i></a>
+                    <a href=""><i class="bi bi-instagram"></i></a>
+                    <a href=""><i class="bi bi-linkedin"></i></a>
+                </div>
+            </div>
+
+            <div class="col-lg-4 col-md-4 footer-links">
+                <h4>Useful Links</h4>
+                <ul>
+                    <li><a href="#about" class="active">About</a></li>
+                    <li><a href="#features">Features</a></li>
+                    <li><a href="#services">Services</a></li>
+                    <li><a href="#faqs">FAQs</a></li>
+                    <!-- <li><a href="#testimonials">Testimonials</a></li> -->
+                    <li><a href="#contact">Contact</a></li>
+                </ul>
+            </div>
+
+            <div class="col-lg-4 col-md-4 footer-links">
+                <h4>Emma AI Services</h4>
+                <ul>
+                    <li><a href="#">Smart</a></li>
+                    <li><a href="#">Voice</a></li>
+                    <li><a href="#">Tasks</a></li>
+                    <li><a href="#">Schedule</a></li>
+                    <li><a href="#">Connect</a></li>
+                    <li><a href="#">24/7 Availability</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="container copyright text-center mt-4">
+        <p>© <span>{{currentYear}}</span> <strong class="px-1 sitename">Emma AI.</strong><span>All Rights Reserved</span></p>
+    </div>
+</footer>
+
+<!-- Scroll Top -->
+<a href="#" id="scroll-top" class="scroll-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
+
+<!-- Preloader -->
+<!-- <div id="preloader"></div> -->

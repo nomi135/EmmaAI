@@ -1,0 +1,53 @@
+<!-- Section Title -->
+<div class="container section-title" data-aos="fade-up">
+    <h2>Contact</h2>
+    <p>Get in touch with Emma AI</p>
+</div><!-- End Section Title -->
+<div class="container" data-aos="fade-up" data-aos-delay="100">
+    <div class="row gy-4 mt-1">
+        <div class="col-lg-12">
+            <form [formGroup]="contactForm" (ngSubmit)="sendMessage()" autocomplete="off" class="php-email-form" data-aos="fade-up" data-aos-delay="400">
+                <div class="row gy-4">
+                    <div class="col-md-6">
+                        <app-text-input 
+                            [formControl]="$any(contactForm.controls['name'])"
+                            [label]="'Your Name'">
+                        </app-text-input>                
+                    </div>
+                    <div class="col-md-6">
+                        <app-text-input
+                            [formControl]="$any(contactForm.controls['email'])"
+                            [label]="'Your Email'"
+                            [type]="'email'">
+                        </app-text-input>
+                    </div>
+                    <div class="col-md-12">
+                        <app-text-input 
+                            [formControl]="$any(contactForm.controls['subject'])"
+                            [label]="'Subject'">
+                        </app-text-input>    
+                    </div>
+                    <div class="col-md-12">
+                        <app-text-input 
+                            [formControl]="$any(contactForm.controls['message'])"
+                            [label]="'Message'"
+                            [type]="'textarea'">
+                        </app-text-input>
+                    </div>
+                    <div class="col-md-12 text-center">
+                            @if (validateErrors) {
+                                <div class="alert alert-danger text-start">
+                                    <ul>
+                                        @for (error of validateErrors; track $index) {
+                                            <li>{{error}}</li>
+                                        }
+                                    </ul>
+                                </div>
+                            }
+                        <button [disabled]="!contactForm.valid" class="btn btn-success me-2" type="submit">Send Message</button>
+                    </div>
+                </div>
+            </form>
+        </div><!-- End Contact Form -->
+    </div>
+</div>

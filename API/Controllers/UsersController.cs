@@ -30,6 +30,10 @@ namespace API.Controllers
             
             if (user == null) return BadRequest("Could not find user");
 
+            if(user.FullName == memberUpdateDto.FullName && user.Country == memberUpdateDto.Country && user.City == memberUpdateDto.City && 
+               user.PrefferedLanguage == memberUpdateDto.PrefferedLanguage && user.TimeZone == memberUpdateDto.TimeZone)
+                return BadRequest("No Changes Detected");
+
             mapper.Map(memberUpdateDto, user);
 
             if (await userRepository.SaveAllAsync()) return NoContent();

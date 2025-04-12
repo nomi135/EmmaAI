@@ -12,6 +12,14 @@ namespace API.DTOs
 
         [Required] 
         public string FullName { get; set; } = string.Empty;
+        [Required]
+        public string Country { get; set; } = string.Empty;
+        [Required]
+        public string City { get; set; } = string.Empty;
+        [Required]
+        public string? Latitude { get; set; }
+        [Required]
+        public string? Longitude { get; set; }
         [Required] 
         public string? PrefferedLanguage { get; set; }
         [Required] 

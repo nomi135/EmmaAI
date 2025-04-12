@@ -1,0 +1,44 @@
+<div class="d-flex flex-column justify-content-center align-items-center hero">
+  <div class="container row section-title col-md-12" data-aos="fade-up">
+    <h2>Emma AI Agent</h2>
+    <p>Ask me anything and I will try to answer to best of my knowledge and scope</p>
+  </div><!-- End Section Title -->
+  <div class="chat-wrapper">
+    <form id="chatForm" #chatForm="ngForm" (ngSubmit)="sendMessage()" class="php-email-form" autocomplete="off">
+       <!-- Loop through chatHistory -->
+       <div *ngFor="let message of chatHistory()" #messageDiv class="message" [ngClass]="{'user': message.chatRole === 'user', 'bot': message.chatRole === 'assistant'}">
+        <div class="bubble" 
+          [innerHTML]="formatMessage(message.message)">
+        </div>
+      </div>
+    
+      <div class="chat-input-area">
+        <div class="input-container">
+          <div class="extra-buttons">
+            <button type="button" class="btn btn-light btn-icon disabled">
+              <i class="bi bi-upload"></i>
+            </button>
+            <button type="button" class="btn btn-light btn-icon disabled">
+              <i class="bi bi-mic"></i>
+            </button>
+          </div>
+    
+          <input 
+            type="text"
+            class="form-control input-field"
+            name="message"
+            [(ngModel)]="userMessage.Message"
+            placeholder="ask emma..." />
+    
+          <button [disabled]="!chatForm.dirty || userMessage.Message.length==0 || !chatCompleted" 
+              type="submit" class="btn btn-primary send-button">
+              <i *ngIf="!loading" class="bi bi-send-fill" role="status"></i> 
+              <i *ngIf="loading" class="bi bi-bootstrap-reboot spinner-grow" role="status"></i> 
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+  
+</div>
+  

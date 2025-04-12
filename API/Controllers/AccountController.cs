@@ -40,6 +40,9 @@ namespace API.Controllers
 
             if (user == null || user.UserName == null) return Unauthorized("Invalid username");
 
+            var isPasswordValid = await userManager.CheckPasswordAsync(user, loginDto.Password);
+            if (!isPasswordValid) return Unauthorized("Invalid password");
+
             return new UserDto
             {
                 UserName = user.UserName,

@@ -9,6 +9,7 @@ namespace API.Data
         IdentityRoleClaim<int>, IdentityUserToken<int>>(options)
     {
         public DbSet<Contact> Contacts { get; set; }
+        public DbSet<UserChatHistory> ChatHistories { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -25,6 +26,12 @@ namespace API.Data
                 .WithOne(u => u.Role)
                 .HasForeignKey(ur => ur.RoleId)
                 .IsRequired();
+
+            builder.Entity<UserChatHistory>()
+                .HasOne(ch => ch.AppUser)   // ChatHistory has one AppUser
+                .WithMany(u => u.ChatHistories) // AppUser has many ChatHistories (you need to add this collection in AppUser class)
+                .HasForeignKey(ch => ch.AppUserId)
+                .OnDelete(DeleteBehavior.Cascade); // Optional: cascade delete if user is deleted
         }
     }
 }

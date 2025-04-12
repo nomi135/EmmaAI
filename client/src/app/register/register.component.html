@@ -1,0 +1,106 @@
+<div class="d-flex flex-column justify-content-center align-items-center hero">
+    <div class="container row section-title col-md-12" data-aos="fade-up">
+        <h2>Register</h2>
+        <p>register here to start interacting with Emma AI</p>
+    </div><!-- End Section Title -->
+    <div class="container row col-md-6" data-aos="fade-up">
+        <form [formGroup]="registerForm" (ngSubmit)="register()" class="php-email-form" autocomplete="off">
+            <div class="input-group">
+                <label class="col-md-3">User Name</label>
+                <div class="col-md-9">
+                    <app-text-input 
+                        [formControl]="$any(registerForm.controls['userName'])"
+                        [label]="'UserName'">
+                    </app-text-input>    
+                </div>
+            </div>
+            <div class="input-group mt-1">
+                <label class="col-md-3">Email</label>
+                <div class="col-md-9">
+                    <app-text-input 
+                        [formControl]="$any(registerForm.controls['email'])"
+                        [label]="'Email'"
+                        [type]="'email'">
+                    </app-text-input>    
+                </div>
+            </div>
+            <div class="input-group mt-1">
+                <label class="col-md-3">Full Name</label>
+                <div class="col-md-9">
+                    <app-text-input 
+                        [formControl]="$any(registerForm.controls['fullName'])"
+                        [label]="'fullName'">
+                    </app-text-input>    
+                </div>
+            </div>
+            <div class="input-group mt-1">
+                <label class="col-md-3">Country</label>
+                <div class="col-md-9">
+                    <app-text-input 
+                        [formControl]="$any(registerForm.controls['country'])"
+                        [label]="'Country'">
+                    </app-text-input>    
+                </div>
+            </div>
+            <div class="input-group mt-1">
+                <label class="col-md-3">City</label>
+                <div class="col-md-9">
+                    <app-text-input 
+                        [formControl]="$any(registerForm.controls['city'])"
+                        [label]="'City'">
+                    </app-text-input>    
+                </div>
+            </div>
+            <div class="input-group mt-1">
+                <label class="col-md-3">Language</label>
+                <div class="col-md-9">
+                    <select class="form-control" [formControl]="$any(registerForm.controls['prefferedLanguage'])">
+                        <option *ngFor="let option of languageOptions()" [value]="option.code">
+                          {{ option.name }}
+                        </option>
+                    </select>
+                </div>
+            </div>
+            <div class="input-group mt-1">
+                <label class="col-md-3">Time Zone</label>
+                <div class="col-md-9">
+                    <select class="form-control" [formControl]="$any(registerForm.controls['timeZone'])">
+                        <option *ngFor="let option of timeZoneOptions()" [value]="option">
+                          {{ option }}
+                        </option>
+                    </select>
+                </div>
+            </div>
+            <div class="input-group mt-1">
+                <label class="col-md-3">Password</label>
+                <div class="col-md-9">
+                    <app-text-input 
+                        [formControl]="$any(registerForm.controls['password'])"
+                        [label]="'Password'"
+                        [type]="'password'">
+                    </app-text-input>      
+                </div>          
+            </div>
+            <div class="input-group mt-1">
+                <label class="col-md-3">Confirm Password</label>
+                <div class="col-md-9">
+                    <app-text-input 
+                        [formControl]="$any(registerForm.controls['confirmPassword'])"
+                        [label]="'Confirm Password'"
+                        [type]="'password'">
+                    </app-text-input>      
+                </div>          
+            </div>
+            @if (validateErrors) {
+                <div class="alert alert-danger text-start mt-1">
+                    <ul>
+                        @for (error of validateErrors; track $index) {
+                            <li>{{error}}</li>
+                        }
+                    </ul>
+                </div>
+            }
+            <button [disabled]="!registerForm.valid" class="btn btn-success mt-1 float-end" type="submit">Register</button>
+        </form>
+    </div>
+</div>

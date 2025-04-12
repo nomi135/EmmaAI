@@ -1,0 +1,107 @@
+@if(member) {
+    <div class="d-flex flex-column justify-content-center align-items-center hero">
+        <div class="container row section-title col-md-12" data-aos="fade-up">
+            <h2>Update Profile</h2>
+            <table class="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th>Last Active</th>
+                        <th>Member Since</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>{{member.lastActive | timeago}}</td>
+                        <td>{{member.created | date: 'dd MMM yyyy'}}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div><!-- End Section Title -->
+        <div class="col-8">
+            @if (editForm?.dirty) {
+                <div class="alert alert-info pb-0">
+                    <p><strong>Information: </strong>
+                       You made changes. Any unsaved changes will be lost</p>
+                </div>
+            }
+        </div>
+        <div class="container row col-md-6" data-aos="fade-up">
+            <form id="editForm" #editForm="ngForm" (ngSubmit)="updateMember()" class="php-email-form" autocomplete="off">
+                <div class="input-group mt-1">
+                    <label class="col-md-3">Full Name</label>
+                    <div class="col-md-9">
+                        <input type="text"
+                            [(ngModel)]="member.fullName" 
+                            class="form-control"
+                            name="fullName">
+                    </div>
+                </div>
+                <div class="input-group mt-1">
+                    <label class="col-md-3">Country</label>
+                    <div class="col-md-9">
+                        <input type="text" 
+                            [(ngModel)]="member.country" 
+                            class="form-control"
+                            [minlength]="2"
+                            [maxlength]="2"
+                            name="country">   
+                    </div>
+                </div>
+                <div class="input-group mt-1">
+                    <label class="col-md-3">City</label>
+                    <div class="col-md-9">
+                        <input type="text" 
+                            [(ngModel)]="member.city" 
+                            class="form-control"
+                            name="city">    
+                    </div>
+                </div>
+                <div class="input-group mt-1 d-none">
+                    <label class="col-md-3">Location</label>
+                    <div class="col-md-3">
+                        <input type="text" 
+                            [(ngModel)]="member.latitude" 
+                            class="form-control"
+                            name="latitude">    
+                    </div>
+                    <div class="col-md-3">
+                        <input type="text" 
+                            [(ngModel)]="member.longitude" 
+                            class="form-control"
+                            name="longitude">    
+                    </div>
+                </div>
+                <div class="input-group mt-1">
+                    <label class="col-md-3">Language</label>
+                    <div class="col-md-9">
+                        <select class="form-control" [ngModel]="member.prefferedLanguage" name="prefferedLanguage">
+                            <option *ngFor="let option of languageOptions()" [value]="option.code">
+                            {{ option.name }}
+                            </option>
+                        </select>
+                    </div>
+                </div>
+                <div class="input-group mt-1">
+                    <label class="col-md-3">Time Zone</label>
+                    <div class="col-md-9">
+                        <select class="form-control" [ngModel]="member.timeZone" name="timeZone">
+                            <option *ngFor="let option of timeZoneOptions()" [value]="option">
+                            {{ option }}
+                            </option>
+                        </select>
+                    </div>
+                </div>
+                @if (validateErrors) {
+                    <div class="alert alert-danger text-start mt-1">
+                        <ul>
+                            @for (error of validateErrors; track $index) {
+                                <li>{{error}}</li>
+                            }
+                        </ul>
+                    </div>
+                }
+                <button [disabled]="!editForm.dirty" form="editForm" type="submit" class="btn btn-success mt-1 float-end">Save Changes</button>
+            </form>
+        </div>
+    </div>
+}

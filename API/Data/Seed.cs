@@ -26,8 +26,12 @@ namespace API.Data
                 UserName = "admin",
                 Email = "admin@emaai.com",
                 FullName = "Admin",
+                Country = "US",
+                City = "Garden grove",
+                Latitude = "33.773776",
+                Longitude = "-117.922126",
                 PrefferedLanguage = "en-US",
-                TimeZone = "UTC-08:00"
+                TimeZone = "UTC-07:00"
             };
 
             await userManager.CreateAsync(admin, "Pa$$w0rd");

@@ -1,0 +1,8 @@
+swiper-slide {
+  opacity: 0.4;
+}
+
+/* Previous and next slides should be dimmed */
+.swiper-slide-next {
+  opacity: 1;
+}
