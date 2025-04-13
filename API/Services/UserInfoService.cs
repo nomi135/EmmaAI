@@ -1,4 +1,5 @@
-﻿using API.Interfaces;
+﻿using API.Entities;
+using API.Interfaces;
 using Microsoft.SemanticKernel;
 using System.ComponentModel;
 using System.Security.Claims;
@@ -10,18 +11,7 @@ namespace API.Services
         [Description("Gets the user information")]
         public async Task<string?> GetUserInfoAsync(string property)
         {
-            var httpContext = httpContextAccessor.HttpContext;
-
-            if (httpContext?.User?.Identity?.IsAuthenticated != true)
-                return null;
-
-            var userIdClaim = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userIdClaim))
-                return null;
-
-            var repo = httpContext.RequestServices.GetRequiredService<IUserRepository>();
-            var userId = int.Parse(userIdClaim);
-            var user = await repo.GetUserByIdAsync(userId);
+            var user = await GetUserAsync();
             if (user == null)
                 return null;
 
@@ -38,6 +28,24 @@ namespace API.Services
                 "location" => user.Latitude?.ToString() + "," + user.Longitude?.ToString(),
                 _ => null // If the info parameter doesn't match any known property, return null
             };
+        }
+
+        [Description("Gets the user entity")]
+        public async Task<AppUser?> GetUserAsync()
+        {
+            var httpContext = httpContextAccessor.HttpContext;
+
+            if (httpContext?.User?.Identity?.IsAuthenticated != true)
+                return null;
+
+            var userIdClaim = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim))
+                return null;
+
+            var repo = httpContext.RequestServices.GetRequiredService<IUserRepository>();
+            var userId = int.Parse(userIdClaim);
+            var user = await repo.GetUserByIdAsync(userId);
+            return user;
         }
     }
 }

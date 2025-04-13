@@ -30,8 +30,7 @@ namespace API.Services
             var weatherData = System.Text.Json.JsonDocument.Parse(content);
             var currentWeather = weatherData.RootElement.GetProperty("current_weather");
             var temperature = currentWeather.GetProperty("temperature").GetDouble();
-            return $"Current temperature is {temperature}°C";
-            throw new NotImplementedException();
+            return $"{temperature}°C";
         }
     }
 }

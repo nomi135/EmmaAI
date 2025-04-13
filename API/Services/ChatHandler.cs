@@ -1,4 +1,5 @@
-﻿using API.Interfaces;
+﻿using API.DTOs;
+using API.Interfaces;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
@@ -21,54 +22,60 @@ namespace API.Services
         public async Task<string?> ProcessUserInputAsync(string userInput)
         {
             // Detect intent dynamically.
-            string? intent = await DetectIntentAsync(userInput);
+            IntentDto? intent = await DetectIntentAsync(userInput);
 
             string? response = string.Empty;
-            switch (intent)
+            switch (intent.Intent)
             {
-                case "GetCurrentDateTime":
-                    string? timeZone = await userInfoService.GetUserInfoAsync("timezone");
-                    response = await GetCurrentDateTimeAsync(userInput, timeZone);
-                    break;
                 case "GetWeatherUpdate":
-                    string? location = await userInfoService.GetUserInfoAsync("location");
+                    string? location = intent.Location;
+                    if (string.IsNullOrEmpty(location) && string.IsNullOrEmpty(intent.City))
+                    {
+                        location = await userInfoService.GetUserInfoAsync("location");
+                    }
                     if (location != null)
                     {
                         string weatherCacheKey = $"weather_{location}_{DateTime.UtcNow:yyyyMMdd}";
                         if (!cache.TryGetValue(weatherCacheKey, out string? cachedWeather))
                         {
-                            cachedWeather = await weatherService.GetCurrentWeatherAsync(location);
-                            cache.Set(weatherCacheKey, cachedWeather, cacheEntryOptions);
+                            var weatherData = await weatherService.GetCurrentWeatherAsync(location);
+                            if (weatherData != "User location not found" || weatherData != "Invalid location format" || weatherData != "Failed to fetch weather data")
+                            {
+                                cachedWeather = $"The temperature in {intent.City} is: {weatherData}";
+                                cache.Set(weatherCacheKey, cachedWeather, cacheEntryOptions);
+                            }
+                            else
+                            {
+                                cachedWeather = weatherData;
+                            }
                         }
                         response = cachedWeather;
                     }
                     break;
-
                 case "GetLatestNews":
-                    string? country = await userInfoService.GetUserInfoAsync("country");
+                    string? country = intent.CountryCode;
+                    if (string.IsNullOrEmpty(country))
+                    {
+                        location = await userInfoService.GetUserInfoAsync("country");
+                    }
                     if (country != null)
                     {
                         string newsCacheKey = $"news_{country}_{DateTime.UtcNow:yyyyMMdd}";
                         if (!cache.TryGetValue(newsCacheKey, out string? cachedNews))
                         {
-                            cachedNews = await newsService.GetLatestNewsAsync(country);
-                            cache.Set(newsCacheKey, cachedNews, cacheEntryOptions);
+                            var headlines = await newsService.GetLatestNewsAsync(country);
+                            if (headlines != "Failed to fetch news data")
+                            {
+                                cachedNews = $"Here are top 10 headlines from {intent.Country}: {headlines}";
+                                cache.Set(newsCacheKey, cachedNews, cacheEntryOptions);
+                            }
+                            else
+                            {
+                                cachedNews = headlines;
+                            }
                         }
                         response = cachedNews;
                     }
-                    break;
-
-                case "GetUserInfo(location)":
-                    response = await userInfoService.GetUserInfoAsync("location");
-                    break;
-                case "GetUserInfo(city)":
-                    response = await userInfoService.GetUserInfoAsync("city");
-                    break;
-                case "GetUserInfo(country)":
-                    response = await userInfoService.GetUserInfoAsync("country");
-                    break;
-                case "GetUserInfo(timezone)":
-                    response = await userInfoService.GetUserInfoAsync("timezone");
                     break;
                 default:
                     response = null;
@@ -79,7 +86,7 @@ namespace API.Services
         }
 
         [Description("Gets the current date or time")]
-        private static async Task<string> GetCurrentDateTimeAsync(string userInput, string? timeZone)
+        private static async Task<string> GetCurrentDateTimeAsync(string? timeZone)
         {
 
             if (timeZone == null)
@@ -96,71 +103,10 @@ namespace API.Services
 
             DateTime dateTime = DateTime.UtcNow.AddHours(hours * sign).AddMinutes(minutes * sign);
 
-            string response = string.Empty;
-            //detect whether user asked for "date" or "time"
-            if (userInput.Contains("date", StringComparison.CurrentCultureIgnoreCase))
-            {
-                response = $"The date today is {dateTime.ToShortDateString()}";
-            }
-            else if (userInput.Contains("time", StringComparison.CurrentCultureIgnoreCase))
-            {
-                response = $"The Time now is {dateTime.ToString("hh:mm tt")}";
-            }
-
-            return await Task.FromResult(response);
+            return await Task.FromResult(dateTime.ToString());
         }
 
-        private async Task<string?> DetectIntentAsync(string userInput)
-        {
-            var prompt = @$"
-                            Instructions: What is the intent of this request?
-                            If you don't know the intent, don't guess; instead respond with ""Unknown"".
-                            Choices: GetCurrentDateTime, GetWeatherUpdate, GetLatestNews, GetUserInfo.
-
-                            User Input: What is date today?
-                            Intent: GetCurrentDateTime 
-
-                            User Input: What is time now?
-                            Intent: GetCurrentDateTime
-
-                            User Input: How is weather today?
-                            Intent: GetWeatherUpdate
-
-                            User Input: Can you tell me latest updates?
-                            Intent: GetLatestNews
-
-                            User Input: What is my location?
-                            Intent: GetUserInfo(location)
-
-                            User Input: What is my timezone?
-                            Intent: GetUserInfo(timezone)
-                            
-                            User Input: What is my country?
-                            Intent: GetUserInfo(country)
-                
-                            User Input: What is my city?
-                            Intent: GetUserInfo(city)
-
-                            User Query: ""{userInput}""
-                            Intent: ";
-
-            var chatCompletionService = kernel.GetRequiredService<IChatCompletionService>();
-            if (chatCompletionService != null)
-            {
-                var chatMessageContent = await chatCompletionService.GetChatMessageContentsAsync(prompt);
-
-                // Use LINQ to get the first TextContent item
-                var textItem = chatMessageContent
-                    .SelectMany(a => a.Items)
-                    .OfType<TextContent>()  // Ensure we're only selecting TextContent
-                    .FirstOrDefault();
-
-                return string.IsNullOrEmpty(textItem?.Text) ? "General" : textItem.Text;
-            }
-            return null;
-        }
-
-        [Description("Get Chat History")]
+        [Description("Gets the chat history for a user. If not found in cache, creates a new one.")]
         public async Task<ChatHistory?> GetChatHistoryAsync(string userName)
         {
             var chatHistory = new ChatHistory();
@@ -187,14 +133,54 @@ namespace API.Services
             string chatHistoryCacheKey = $"chatHistory_{userName}";
             string serilized = JsonSerializer.Serialize(history);
             var result = cache.Set(chatHistoryCacheKey, serilized, cacheEntryOptions);
-            return await Task.FromResult(result);   
+            return await Task.FromResult(result);
         }
-        private static async Task<ChatHistory> CreateChatHistorySystemMessage(string userName)
+
+        [Description("Creates a system message for the chat history.")]
+        private async Task<ChatHistory> CreateChatHistorySystemMessage(string userName)
         {
+            var user = await userInfoService.GetUserAsync();
+            string location = await userInfoService.GetUserInfoAsync("location");
             var history = new ChatHistory();
-            history.AddSystemMessage("You are Emma AI, a helpful and intelligent virtual assistant. You can answer questions about the weather, news, and other topics. You can also help users with their tasks and provide information about their contacts.");
-            history.AddSystemMessage($"userName is {userName}");
+            history.AddSystemMessage("You are Emma AI, a helpful and intelligent virtual assistant. You can answer questions about the weather, news, and other topics. " +
+                "                     You can also help users with their tasks and provide information about their contacts.");
+            history.AddSystemMessage($"Here is complete user information: UserName {userName}, Email: {user.Email}, FullName: {user.FullName}, " +
+                                     $"Country: {user.Country}, City: {user.City}, Location: {location}, TimeZone: {user.TimeZone}");
+            history.AddSystemMessage($"here is current date and time: {await GetCurrentDateTimeAsync(user.TimeZone)}");
+            history.AddSystemMessage($"here is weather update for {user.City}: {await weatherService.GetCurrentWeatherAsync(location == null ? "" : location)}");
+            history.AddSystemMessage($"here is top 10 news from {user.Country}: {await newsService.GetLatestNewsAsync(user.Country)}");
             return await Task.FromResult(history);
+        }
+
+        [Description("Detects the intent of the user input using a prompt template.")]
+        private async Task<IntentDto?> DetectIntentAsync(string userInput)
+        {
+            IntentDto intent = new IntentDto();
+            var promptTemplate = await File.ReadAllTextAsync("Prompts/IntentDetectionPrompt.txt");
+
+            // Replace {userInput} placeholder dynamically
+            var prompt = promptTemplate.Replace("{userInput}", userInput);
+
+            var chatCompletionService = kernel.GetRequiredService<IChatCompletionService>();
+            if (chatCompletionService != null)
+            {
+                var chatMessageContent = await chatCompletionService.GetChatMessageContentsAsync(prompt);
+
+                // Use LINQ to get the first TextContent item
+                var textItem = chatMessageContent
+                    .SelectMany(a => a.Items)
+                    .OfType<TextContent>()  // Ensure we're only selecting TextContent
+                    .FirstOrDefault();
+                if (textItem != null && !string.IsNullOrEmpty(textItem.Text))
+                {
+                    // Deserialize the JSON response into the IntentDto object
+                    intent = JsonSerializer.Deserialize<IntentDto>(textItem.Text, new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    });
+                }
+            }
+            return intent;
         }
     }
 }

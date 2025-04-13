@@ -1,0 +1,48 @@
+﻿Instructions:
+1. Identify the intent of the user input.
+2. If the intent is 'GetWeatherUpdate', extract the city mentioned and its approximate latitude,longitude (Location).
+3. If the intent is 'GetLatestNews', extract the country mentioned.
+4. For the country, also extract its official 2-letter ISO code (like 'PK' for Pakistan, 'IN' for India).
+5. If you don't know the city, country, country code, or location, leave it empty ('').
+6. Never write 'Unknown' — just leave fields empty if not available.
+
+Respond ONLY in this exact JSON format:
+
+{
+  "Intent": "<Intent>",
+  "City": "<City or ''>",
+  "Country": "<Country or ''>",
+  "CountryCode": "<CountryCode or ''>",
+  "Location": "<Latitude,Longitude or ''>"
+}
+
+Examples:
+
+User Input: What is the weather in Lahore?
+{
+  "Intent": "GetWeatherUpdate",
+  "City": "Lahore",
+  "Country": "",
+  "CountryCode": "",
+  "Location": "31.5204,74.3587"
+}
+
+User Input: What's the latest news from Canada?
+{
+  "Intent": "GetLatestNews",
+  "City": "",
+  "Country": "Canada",
+  "CountryCode": "CA",
+  "Location": ""
+}
+
+User Input: I want to know the news.
+{
+  "Intent": "GetLatestNews",
+  "City": "",
+  "Country": "",
+  "CountryCode": "",
+  "Location": ""
+}
+
+User Query: "{userInput}"

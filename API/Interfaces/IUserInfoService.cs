@@ -1,7 +1,11 @@
-﻿namespace API.Interfaces
+﻿using API.Entities;
+
+namespace API.Interfaces
 {
     public interface IUserInfoService
     {
         Task<string?> GetUserInfoAsync(string property);
+
+        Task<AppUser?> GetUserAsync();
     }
 }
