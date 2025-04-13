@@ -31,7 +31,7 @@ namespace API.Data
                 .HasOne(ch => ch.AppUser)   // ChatHistory has one AppUser
                 .WithMany(u => u.ChatHistories) // AppUser has many ChatHistories (you need to add this collection in AppUser class)
                 .HasForeignKey(ch => ch.AppUserId)
-                .OnDelete(DeleteBehavior.Cascade); // Optional: cascade delete if user is deleted
+                .OnDelete(DeleteBehavior.NoAction);
         }
     }
 }

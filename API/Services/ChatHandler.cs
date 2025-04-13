@@ -56,7 +56,7 @@ namespace API.Services
                     string? country = intent.CountryCode;
                     if (string.IsNullOrEmpty(country))
                     {
-                        location = await userInfoService.GetUserInfoAsync("country");
+                        country = await userInfoService.GetUserInfoAsync("country");
                     }
                     if (country != null)
                     {
