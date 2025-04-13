@@ -1,4 +1,4 @@
-name: Build and deploy ASP.Net Core app to Azure Web App - emma-ai
+name: Build and deploy ASP.NET Core app to Azure Web App - emma-ai
 
 on:
   push:
@@ -13,24 +13,28 @@ jobs:
       contents: read
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: Set up .NET Core
+      - name: Set up .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x' # <-- Updated
+          dotnet-version: '8.0.x' # Or '7.0.x' or '6.0.x' based on your project
 
-      - name: Build with dotnet
-        run: dotnet build --configuration Release
+      - name: Restore dependencies
+        run: dotnet restore
 
-      - name: dotnet publish
-        run: dotnet publish -c Release -o myapp # <-- Updated
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
 
-      - name: Upload artifact for deployment job
+      - name: Publish
+        run: dotnet publish -c Release -o publish_output
+
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: .net-app
-          path: myapp # <-- Updated
+          name: emma-ai-app
+          path: publish_output
 
   deploy:
     runs-on: windows-latest
@@ -43,22 +47,22 @@ jobs:
       contents: read
 
     steps:
-      - name: Download artifact from build job
+      - name: Download artifact
         uses: actions/download-artifact@v4
         with:
-          name: .net-app
-      
+          name: emma-ai-app
+
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_E15D50482AED479684403E34D04F6BBD }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_38BF35DEFBA243F28DA4CA426EC88206 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_BD0997365D6F4070BD33A2203D045F6D }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID }}
 
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'emma-ai'
+          app-name: 'emma-ai' # Your Azure Web App Name
           slot-name: 'Production'
-          package: myapp # <-- Updated
+          package: .
