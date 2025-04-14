@@ -66,8 +66,11 @@ namespace API.Services
                             var headlines = await newsService.GetLatestNewsAsync(country);
                             if (headlines != "Failed to fetch news data")
                             {
-                                cachedNews = $"Here are top 10 headlines from {intent.Country}: {headlines}";
-                                cache.Set(newsCacheKey, cachedNews, cacheEntryOptions);
+                                cachedNews = !string.IsNullOrEmpty(intent.Country) switch
+                                {
+                                   true => $"Here are the top 10 news headlines from {intent.Country} : {headlines}",
+                                    _ => $"Here are the top 10 news headlines : {headlines}"
+                                };
                             }
                             else
                             {
@@ -156,7 +159,8 @@ namespace API.Services
         private async Task<IntentDto?> DetectIntentAsync(string userInput)
         {
             IntentDto intent = new IntentDto();
-            var promptTemplate = await File.ReadAllTextAsync("Prompts/IntentDetectionPrompt.txt");
+            var promptFilePath = Path.Combine(Directory.GetCurrentDirectory(), "Prompts", "IntentDetectionPrompt.txt");
+            var promptTemplate = await File.ReadAllTextAsync(promptFilePath);
 
             // Replace {userInput} placeholder dynamically
             var prompt = promptTemplate.Replace("{userInput}", userInput);

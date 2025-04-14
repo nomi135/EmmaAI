@@ -20,9 +20,9 @@
                     <li><a routerLink="/agent" routerLinkActive="active">Agent</a></li>
                     <li>
                         <div dropdown class="dropdown">
-                            <a dropdownToggle class="dropdown-toggle">
-                              Welcome {{accountService.currentUser()?.userName}}
-                            </a>
+                            <button dropdownToggle class="btn link-dropdown dropdown-toggle" type="button">
+                                Welcome {{accountService.currentUser()?.userName}}
+                            </button>
                             <div *dropdownMenu class="dropdown-menu">
                               <a routerLink="/member/edit" class="dropdown-item">Edit profile</a>
                               <div class="dropdown-divider"></div>
@@ -90,7 +90,7 @@
 </footer>
 
 <!-- Scroll Top -->
-<a href="#" id="scroll-top" class="scroll-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
+<a href="#" *ngIf="!currentRoute.includes('/agent')" id="scroll-top" class="scroll-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
 
 <!-- Preloader -->
 <!-- <div id="preloader"></div> -->
