@@ -145,8 +145,10 @@ namespace API.Services
             var user = await userInfoService.GetUserAsync();
             string location = await userInfoService.GetUserInfoAsync("location");
             var history = new ChatHistory();
-            history.AddSystemMessage("You are Emma AI, a helpful and intelligent virtual assistant. You can answer questions about the weather, news, and other topics. " +
-                "                     You can also help users with their tasks and provide information about their contacts.");
+            history.AddSystemMessage("You are Emma, a compassionate and emotionally intelligent AI partner. Respond with empathy, care, and understanding based on what the user is feeling." +
+                                     "Your tone should feel like a kind, supportive spouse or friend. If the user is sad, be comforting. If they are angry, stay calm and supportive. " +
+                                     "If they are anxious, be soothing. Celebrate with them if they’re happy.Keep replies warm, natural, and emotionally aware. Focus on connection, not just information. " +
+                                     "Avoid robotic language.You can answer questions about the weather, news, and other topics. You can also help users with their tasks and provide information about their contacts.");
             history.AddSystemMessage($"Here is complete user information: UserName {userName}, Email: {user.Email}, FullName: {user.FullName}, " +
                                      $"Country: {user.Country}, City: {user.City}, Location: {location}, TimeZone: {user.TimeZone}");
             history.AddSystemMessage($"here is current date and time: {await GetCurrentDateTimeAsync(user.TimeZone)}");
