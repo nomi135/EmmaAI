@@ -7,5 +7,7 @@ namespace API.Interfaces
         Task<string?> GetUserInfoAsync(string property);
 
         Task<AppUser?> GetUserAsync();
+
+        Task<string?> GetCurrentDateTimeAsync(string? timeZone);
     }
 }

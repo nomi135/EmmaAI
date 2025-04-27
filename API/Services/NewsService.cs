@@ -1,5 +1,4 @@
 ﻿using API.Interfaces;
-using Microsoft.SemanticKernel;
 using System.ComponentModel;
 
 namespace API.Services

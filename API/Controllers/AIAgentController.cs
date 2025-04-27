@@ -35,9 +35,13 @@ namespace API.Controllers
             history.AddUserMessage(userMessage.Message);
 
             var response = await chatHandler.ProcessUserInputAsync(userMessage.Message);
-            var textItem = new TextContent(response);
-            if (response == null)
+            var textItem = new TextContent(response.result);
+            if (string.IsNullOrEmpty(response.result))
             {
+                if (!string.IsNullOrWhiteSpace(response.intent.ResponseStyle))
+                {
+                    history.AddSystemMessage($"Detected emotion:{response.intent.Emotion} reply in: {response.intent.ResponseStyle} tone. Remember you are wife of user");
+                }
                 var chatMessageContent = await chatService.GetChatMessageContentsAsync(chatHistory: history, kernel: kernel, executionSettings: executionSettings);
 
                 if (chatMessageContent == null)

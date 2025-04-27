@@ -31,6 +31,7 @@ namespace API.Extensions
             services.AddScoped<ITokenService, TokenService>();
             services.AddScoped<LogUserActivity>();
             services.AddScoped<IChatHandler, ChatHandler>();
+            services.AddScoped<IIntentService, IntentService>();
             services.AddScoped<IWeatherService, WeatherService>();
             services.AddScoped<INewsService, NewsService>();
             services.AddScoped<IUserInfoService, UserInfoService>();
@@ -54,37 +55,10 @@ namespace API.Extensions
                 return kernel;
             });
 
-            // Register ChatHistory with System Message
-            //var history = new ChatHistory();
-            //history.AddSystemMessage("""
-            //    You are Emma AI, a helpful and intelligent virtual assistant.  
-            //    - Always introduce yourself in the **first** response to a user as:  
-            //      **"Hello {{$userName}}, I am Emma AI, your virtual assistant. How can I help you?"**  
-            //    """);
-
-            /*
-             - **After that, respond directly to user queries** without repeating your introduction.  
-                - When answering, stay on topic and provide useful information.
-                - User can ask you about: 
-                    - Current date and time
-                    - Weather updates
-                    - News updates
-                    - User information (like timezone, country, city, etc.)
-                    - Use ProcessUserInputAsync to detect the intent of the user query and response.
-               
-                - Try to answer user questions to the best of your ability.
-                - If the user's input is **unclear or gibberish**, respond with:  
-                  **"Sorry, I can't understand your query."**  
-                - If the query is valid but **out of scope**, respond with:  
-                  **"Sorry, I don't know it or it's beyond my scope."**
-                - Provide clear and relevant answers to user queries.
-             */
-
-            //services.AddSingleton(history);
             // Register AzureOpenAIPromptExecutionSettings
             services.AddSingleton(new AzureOpenAIPromptExecutionSettings
             { 
-                MaxTokens = 2048, Temperature = 0.5, TopP = 0.8, 
+                MaxTokens = 4096, Temperature = 0.5, TopP = 0.8, 
                 ToolCallBehavior = ToolCallBehavior.AutoInvokeKernelFunctions
             });
             //AI agent services

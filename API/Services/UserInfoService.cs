@@ -1,6 +1,5 @@
 ﻿using API.Entities;
 using API.Interfaces;
-using Microsoft.SemanticKernel;
 using System.ComponentModel;
 using System.Security.Claims;
 
@@ -46,6 +45,27 @@ namespace API.Services
             var userId = int.Parse(userIdClaim);
             var user = await repo.GetUserByIdAsync(userId);
             return user;
+        }
+
+        [Description("Gets the current date or time")]
+        public async Task<string?> GetCurrentDateTimeAsync(string? timeZone)
+        {
+
+            if (timeZone == null)
+            {
+                return "User timezone not found";
+            }
+
+            var offsetParts = timeZone.Split(new[] { '+', '-' });
+            if (offsetParts.Length != 2) return "Invalid timezone format";
+
+            var sign = timeZone.Contains('+') ? 1 : -1;
+            var hours = int.Parse(offsetParts[1].Split(':')[0]);
+            var minutes = int.Parse(offsetParts[1].Split(':')[1]);
+
+            DateTime dateTime = DateTime.UtcNow.AddHours(hours * sign).AddMinutes(minutes * sign);
+
+            return await Task.FromResult(dateTime.ToString());
         }
     }
 }
