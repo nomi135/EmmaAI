@@ -84,10 +84,11 @@ namespace API.Services
             var history = new ChatHistory();
 
             // Load prompt from external file
-            var promptPath = Path.Combine(AppContext.BaseDirectory, "Prompts", "EmotionDetectionPrompt.txt");
-            if (File.Exists(promptPath))
+           var promptFilePath = Path.Combine(Directory.GetCurrentDirectory(), "Prompts", "IntentDetectionPrompt.txt");
+            var promptTemplate = await File.ReadAllTextAsync(promptFilePath);
+            if (File.Exists(promptTemplate))
             {
-                string systemPrompt = await File.ReadAllTextAsync(promptPath);
+                string systemPrompt = await File.ReadAllTextAsync(promptTemplate);
                 history.AddSystemMessage(systemPrompt);
             }
 
