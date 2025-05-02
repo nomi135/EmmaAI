@@ -40,7 +40,7 @@ namespace API.Controllers
             {
                 if (!string.IsNullOrWhiteSpace(response.intent.ResponseStyle))
                 {
-                    history.AddSystemMessage($"Detected emotion:{response.intent.Emotion} reply in: {response.intent.ResponseStyle} tone. Remember you are wife of user");
+                    history.AddSystemMessage($"Detected emotion:{response.intent.Emotion} reply in: {response.intent.ResponseStyle} tone.");
                 }
                 var chatMessageContent = await chatService.GetChatMessageContentsAsync(chatHistory: history, kernel: kernel, executionSettings: executionSettings);
 
