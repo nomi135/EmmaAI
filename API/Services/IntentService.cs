@@ -17,7 +17,7 @@ namespace API.Services
         public async Task<IntentDto?> DetectIntentAsync(string userInput)
         {
             IntentDto intent = new IntentDto();
-            var promptFilePath = Path.Combine(Directory.GetCurrentDirectory(), "Prompts", "IntentDetectionPrompt.txt");
+            var promptFilePath = Path.Combine(AppContext.BaseDirectory, "Prompts", "IntentDetectionPrompt.txt");
             var promptTemplate = await File.ReadAllTextAsync(promptFilePath);
 
             // Replace {userInput} placeholder dynamically
