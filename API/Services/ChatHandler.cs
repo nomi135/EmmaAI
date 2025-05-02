@@ -84,14 +84,14 @@ namespace API.Services
             var history = new ChatHistory();
 
             // Load prompt from external file
-            var promptFilePath = Path.Combine(AppContext.BaseDirectory, "Prompts", "IntentDetectionPrompt.txt");
+            /*var promptFilePath = Path.Combine(AppContext.BaseDirectory, "Prompts", "IntentDetectionPrompt.txt");
 
             if (File.Exists(promptFilePath))
             {
                 var systemPrompt = await File.ReadAllTextAsync(promptFilePath);
                 history.AddSystemMessage(systemPrompt);
             }
-
+            */
             // Inject user information
             history.AddSystemMessage(
                 $"Here is complete user information:\n" +
