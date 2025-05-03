@@ -115,9 +115,22 @@ namespace API.Controllers
 
         private string CreateAudioFile(string userMessage)
         {
+            string basePath;
+
+            if (Environment.GetEnvironmentVariable("HOME") != null)
+            {
+                // Running in Azure App Service (Linux or Windows)
+                basePath = Path.Combine(Environment.GetEnvironmentVariable("HOME")!, "data");
+            }
+            else
+            {
+                // Running locally (dev environment)
+                basePath = Path.Combine(Directory.GetCurrentDirectory());
+            }
+
             var username = User.GetUsername();
             var sanitizedMessage = userMessage.ToLower().Replace(' ', '_');
-            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "AudioTranscription", username);
+            var folderPath = Path.Combine(basePath, "AudioTranscription", username);
             var fileName = $"{sanitizedMessage}_{DateTime.UtcNow.Ticks}_response.mp3";
             var responseAudioPath = Path.Combine(folderPath, fileName);
 
