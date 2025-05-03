@@ -1,4 +1,5 @@
 export interface AgentMessage {
     type: string,
-    text: string
+    text: string,
+    audioFilePath: string
 }

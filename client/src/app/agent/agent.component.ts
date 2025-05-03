@@ -6,6 +6,7 @@ import { ToastrService } from 'ngx-toastr';
 import { UserChatHistory } from '../_models/user-chat-history';
 import { AgentMessage } from '../_models/agent-message';
 import { CommonModule, NgFor, NgIf } from '@angular/common';
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-agent',
@@ -24,6 +25,7 @@ export class AgentComponent implements OnInit {
 
   agentService = inject(AgentService);
   private toastr = inject(ToastrService);
+  baseUrl = environment.apiUrl;
   userMessage: UserMessage = { Message: '' };
   chatHistory = signal<UserChatHistory[]>([]);
   chatCompleted = true;
@@ -66,8 +68,23 @@ export class AgentComponent implements OnInit {
         };
          // Push agent message to chat history
         this.chatHistory.update(history => [...history, agentHistory]);  // Add agent message
-        this.chatCompleted = true;
-        this.loading = false;
+        // Autoplay audio and only set loading = false after audio finishes
+        if (agentMessage.audioFilePath) {
+          agentMessage.audioFilePath = this.baseUrl + agentMessage.audioFilePath;
+          const audio = new Audio(agentMessage.audioFilePath);
+          audio.play().catch(err => {
+            console.error('Audio playback failed', err);
+            this.loading = false; // fallback
+          });
+
+          audio.onended = () => {
+            this.loading = false;
+            this.chatCompleted = true;
+          };
+        } else {
+          this.loading = false;
+          this.chatCompleted = true;
+        }
         // Reset the chat form
         this.userMessage.Message = '';
         this.scrollToLastMessage();

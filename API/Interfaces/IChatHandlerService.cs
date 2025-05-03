@@ -3,7 +3,7 @@ using Microsoft.SemanticKernel.ChatCompletion;
 
 namespace API.Interfaces
 {
-    public interface IChatHandler
+    public interface IChatHandlerService
     {
         Task<(string? result, IntentDto intent)> ProcessUserInputAsync(string userInput);
         Task<ChatHistory?> GetChatHistoryAsync(string userName);

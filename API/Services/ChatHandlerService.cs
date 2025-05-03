@@ -7,7 +7,7 @@ using System.Text.Json;
 
 namespace API.Services
 {
-    public class ChatHandler(IIntentService intentService, IUserInfoService userInfoService, IMemoryCache cache) : IChatHandler
+    public class ChatHandlerService(IIntentService intentService, IUserInfoService userInfoService, IMemoryCache cache) : IChatHandlerService
     {
         // Cache expiration period – adjust as needed.
         MemoryCacheEntryOptions cacheEntryOptions = new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromHours(1));

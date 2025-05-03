@@ -30,11 +30,12 @@ namespace API.Extensions
             services.AddCors();
             services.AddScoped<ITokenService, TokenService>();
             services.AddScoped<LogUserActivity>();
-            services.AddScoped<IChatHandler, ChatHandler>();
+            services.AddScoped<IChatHandlerService, ChatHandlerService>();
             services.AddScoped<IIntentService, IntentService>();
             services.AddScoped<IWeatherService, WeatherService>();
             services.AddScoped<INewsService, NewsService>();
             services.AddScoped<IUserInfoService, UserInfoService>();
+            services.AddScoped<ISpeechService, SpeechService>();
             services.AddScoped<IContactRepository, ContactRepository>();
             services.AddScoped<IUserChatHistoryRepository, UserChatHistoryRepository>();
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());

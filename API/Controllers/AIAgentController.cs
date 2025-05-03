@@ -12,7 +12,7 @@ using Microsoft.SemanticKernel.Connectors.AzureOpenAI;
 namespace API.Controllers
 {
     [Authorize]
-    public class AIAgentController(IUserChatHistoryRepository chatHistoryRepository, IChatHandler chatHandler, Kernel kernel,
+    public class AIAgentController(IUserChatHistoryRepository chatHistoryRepository, IChatHandlerService chatHandlerService, ISpeechService speechService, Kernel kernel,
                                    AzureOpenAIPromptExecutionSettings executionSettings, IMapper mapper) : BaseApiController
     {
         [HttpPost]
@@ -20,7 +20,7 @@ namespace API.Controllers
         {
             ChatHistory history = new ChatHistory();
 
-            var chatHistory = await chatHandler.GetChatHistoryAsync(User.GetUsername());
+            var chatHistory = await chatHandlerService.GetChatHistoryAsync(User.GetUsername());
             if (chatHistory != null)
             {
                 history = chatHistory;
@@ -34,13 +34,13 @@ namespace API.Controllers
 
             history.AddUserMessage(userMessage.Message);
 
-            var response = await chatHandler.ProcessUserInputAsync(userMessage.Message);
-            var textItem = new TextContent(response.result);
-            if (string.IsNullOrEmpty(response.result))
+            var (result, intent) = await chatHandlerService.ProcessUserInputAsync(userMessage.Message);
+            var textItem = new TextContent(result);
+            if (string.IsNullOrEmpty(result))
             {
-                if (!string.IsNullOrWhiteSpace(response.intent.ResponseStyle))
+                if (!string.IsNullOrWhiteSpace(intent.ResponseStyle))
                 {
-                    history.AddSystemMessage($"Detected emotion:{response.intent.Emotion} reply in: {response.intent.ResponseStyle} tone.");
+                    history.AddSystemMessage($"Detected emotion:{intent.Emotion} reply in: {intent.ResponseStyle} tone.");
                 }
                 var chatMessageContent = await chatService.GetChatMessageContentsAsync(chatHistory: history, kernel: kernel, executionSettings: executionSettings);
 
@@ -64,8 +64,22 @@ namespace API.Controllers
             history.AddAssistantMessage(assistantMessage.Text);
 
             // Update chat history cache
-            string cache = await chatHandler.SaveChatHistoryAsync(User.GetUsername(), history);
+            string cache = await chatHandlerService.SaveChatHistoryAsync(User.GetUsername(), history);
 
+            //check if output path is not created then create it
+            string outputPath = CreateAudioFile(userMessage.Message);
+            //convert response to audio and save to file
+            bool isTranscribed = await speechService.TextToSpeechAsync(assistantMessage.Text, outputPath);
+            if (!isTranscribed)
+            {
+                return BadRequest("Failed to transcribe text to speech.");
+            }
+            // Get the relative path (e.g. "AudioTranscription/nomi/audio.mp3")
+            var relativePath = Path.GetRelativePath(Directory.GetCurrentDirectory(), outputPath)
+                                    .Replace("\\", "/"); // Normalize for URLs
+
+            // Save the audio file path to the DTO
+            assistantMessage.AudioFilePath = relativePath;
             return Ok(assistantMessage);
         }
 
@@ -74,9 +88,9 @@ namespace API.Controllers
         {
             List<UserChatHistoryDto> userChatHistory = new List<UserChatHistoryDto>();
             //first try to get from cache
-            var chatHistory = await chatHandler.GetChatHistoryAsync(User.GetUsername());
+            var chatHistory = await chatHandlerService.GetChatHistoryAsync(User.GetUsername());
 
-            if (chatHandler != null)
+            if (chatHandlerService != null)
             {
                 foreach (var item in chatHistory)
                 {
@@ -97,6 +111,27 @@ namespace API.Controllers
             }
 
             return Ok(userChatHistory);
+        }
+
+        private string CreateAudioFile(string userMessage)
+        {
+            var username = User.GetUsername();
+            var sanitizedMessage = userMessage.ToLower().Replace(' ', '_');
+            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "AudioTranscription", username);
+            var fileName = $"{sanitizedMessage}_{DateTime.UtcNow.Ticks}_response.mp3";
+            var responseAudioPath = Path.Combine(folderPath, fileName);
+
+            if (!Directory.Exists(folderPath))
+            {
+                Directory.CreateDirectory(folderPath);
+            }
+            // Check if the file already exists and delete it if it does
+            if (System.IO.File.Exists(responseAudioPath))
+            {
+                System.IO.File.Delete(responseAudioPath);
+            }
+
+            return responseAudioPath;
         }
     }
 }
