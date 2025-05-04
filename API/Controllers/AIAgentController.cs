@@ -13,7 +13,7 @@ namespace API.Controllers
 {
     [Authorize]
     public class AIAgentController(IUserChatHistoryRepository chatHistoryRepository, IChatHandlerService chatHandlerService, ISpeechService speechService, Kernel kernel,
-                                   AzureOpenAIPromptExecutionSettings executionSettings, IMapper mapper) : BaseApiController
+                                   AzureOpenAIPromptExecutionSettings executionSettings, IMapper mapper, ILogger logger) : BaseApiController
     {
         [HttpPost]
         public async Task<ActionResult<AssistantMessageDto>> Chat([FromBody] UserMessageDto userMessage)
@@ -115,46 +115,37 @@ namespace API.Controllers
 
         private string CreateAudioFile(string userMessage)
         {
-            string basePath;
-
-            // Priority: Azure App Service > GitHub Action > Local
-            var azureHome = Environment.GetEnvironmentVariable("HOME");
-            var githubWorkspace = Environment.GetEnvironmentVariable("GITHUB_WORKSPACE");
-
-            if (!string.IsNullOrEmpty(azureHome))
-            {
-                // Azure App Service
-                basePath = Path.Combine(azureHome, "site", "wwwroot", "Data");
-            }
-            else if (!string.IsNullOrEmpty(githubWorkspace))
-            {
-                basePath = githubWorkspace;
-            }
-            else
-            {
-                basePath = Path.Combine(Directory.GetCurrentDirectory(), "Data");
-            }
+            // Use a consistent and safe base path — works on Azure and locally
+            string basePath = Path.Combine(AppContext.BaseDirectory, "Data");
 
             var username = User.GetUsername();
 
+            // Sanitize the user message for safe filename usage
             var invalidChars = Path.GetInvalidFileNameChars();
             var sanitizedMessage = new string(userMessage.ToLower()
                 .Select(ch => invalidChars.Contains(ch) ? '_' : ch)
                 .ToArray());
 
+            // Build full folder and file path
             var folderPath = Path.Combine(basePath, "AudioTranscription", username);
             var fileName = $"{sanitizedMessage}_{Guid.NewGuid()}_response.mp3";
             var responseAudioPath = Path.Combine(folderPath, fileName);
 
-            if (!Directory.Exists(folderPath))
-                Directory.CreateDirectory(folderPath);
+            logger.LogInformation($"Audio will be saved to: {responseAudioPath}");
 
+            if (!Directory.Exists(folderPath))
+            {
+                // Create the directory if it doesn't exist
+                Directory.CreateDirectory(folderPath);
+            }
+
+            // Optionally delete if somehow exists (super rare)
             if (System.IO.File.Exists(responseAudioPath))
+            {
                 System.IO.File.Delete(responseAudioPath);
+            }
 
             return responseAudioPath;
         }
-
-
     }
 }
