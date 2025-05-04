@@ -116,35 +116,53 @@ namespace API.Controllers
         private string CreateAudioFile(string userMessage)
         {
             string basePath;
-
-            if (Environment.GetEnvironmentVariable("HOME") != null)
+        
+            // Priority: Azure App Service > GitHub Action > Local
+            var azureHome = Environment.GetEnvironmentVariable("HOME");
+            var githubWorkspace = Environment.GetEnvironmentVariable("GITHUB_WORKSPACE");
+        
+            if (!string.IsNullOrEmpty(azureHome))
             {
-                // Running in Azure App Service (Linux or Windows)
-                basePath = Path.Combine(Environment.GetEnvironmentVariable("HOME")!, "data");
+                // Azure App Service (Linux or Windows)
+                basePath = Path.Combine(azureHome, "data"); // Writable directory
+            }
+            else if (!string.IsNullOrEmpty(githubWorkspace))
+            {
+                // GitHub Actions runner environment
+                basePath = githubWorkspace; // Temporary workspace
             }
             else
             {
-                // Running locally (dev environment)
-                basePath = Path.Combine(Directory.GetCurrentDirectory());
+                // Local development
+                basePath = Directory.GetCurrentDirectory();
             }
-
+        
             var username = User.GetUsername();
-            var sanitizedMessage = userMessage.ToLower().Replace(' ', '_');
+        
+            // Sanitize message for filename
+            var invalidChars = Path.GetInvalidFileNameChars();
+            var sanitizedMessage = new string(userMessage.ToLower()
+                .Select(ch => invalidChars.Contains(ch) ? '_' : ch)
+                .ToArray());
+        
             var folderPath = Path.Combine(basePath, "AudioTranscription", username);
-            var fileName = $"{sanitizedMessage}_{DateTime.UtcNow.Ticks}_response.mp3";
+            var fileName = $"{sanitizedMessage}_{Guid.NewGuid()}_response.mp3";
             var responseAudioPath = Path.Combine(folderPath, fileName);
-
+        
+            // Ensure directory exists
             if (!Directory.Exists(folderPath))
             {
                 Directory.CreateDirectory(folderPath);
             }
-            // Check if the file already exists and delete it if it does
+        
+            // Delete if accidentally duplicated (very rare with GUID)
             if (System.IO.File.Exists(responseAudioPath))
             {
                 System.IO.File.Delete(responseAudioPath);
             }
-
+        
             return responseAudioPath;
         }
+
     }
 }
