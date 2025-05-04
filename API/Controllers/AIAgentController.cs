@@ -14,7 +14,7 @@ namespace API.Controllers
 {
     [Authorize]
     public class AIAgentController(IUserChatHistoryRepository chatHistoryRepository, IChatHandlerService chatHandlerService, ISpeechService speechService, Kernel kernel,
-                                   AzureOpenAIPromptExecutionSettings executionSettings, IMapper mapper, ILogger<AIAgentController> logger) : BaseApiController
+                                   AzureOpenAIPromptExecutionSettings executionSettings, IMapper mapper) : BaseApiController
     {
         [HttpPost]
         public async Task<ActionResult<AssistantMessageDto>> Chat([FromBody] UserMessageDto userMessage)
@@ -131,8 +131,6 @@ namespace API.Controllers
             var folderPath = Path.Combine(basePath, "AudioTranscription", username);
             var fileName = $"{sanitizedMessage}_{Guid.NewGuid()}_response.mp3";
             var responseAudioPath = Path.Combine(folderPath, fileName);
-
-            logger.LogInformation($"Audio will be saved to: {responseAudioPath}");
 
             if (!Directory.Exists(folderPath))
             {
