@@ -2,6 +2,7 @@
 using API.Entities;
 using API.Extensions;
 using API.Interfaces;
+using API.Middleware;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -13,7 +14,7 @@ namespace API.Controllers
 {
     [Authorize]
     public class AIAgentController(IUserChatHistoryRepository chatHistoryRepository, IChatHandlerService chatHandlerService, ISpeechService speechService, Kernel kernel,
-                                   AzureOpenAIPromptExecutionSettings executionSettings, IMapper mapper, ILogger logger) : BaseApiController
+                                   AzureOpenAIPromptExecutionSettings executionSettings, IMapper mapper, ILogger<AIAgentController> logger) : BaseApiController
     {
         [HttpPost]
         public async Task<ActionResult<AssistantMessageDto>> Chat([FromBody] UserMessageDto userMessage)
