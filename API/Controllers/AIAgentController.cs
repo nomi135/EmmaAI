@@ -133,6 +133,7 @@ namespace API.Controllers
             var responseAudioPath = Path.Combine(folderPath, fileName);
 
             logger.LogInformation($"Audio will be saved to: {responseAudioPath}");
+            Console.WriteLine($"Audio will be saved to: {responseAudioPath}");
 
             if (!Directory.Exists(folderPath))
             {
