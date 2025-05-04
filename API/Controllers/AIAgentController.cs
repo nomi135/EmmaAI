@@ -116,53 +116,45 @@ namespace API.Controllers
         private string CreateAudioFile(string userMessage)
         {
             string basePath;
-        
+
             // Priority: Azure App Service > GitHub Action > Local
             var azureHome = Environment.GetEnvironmentVariable("HOME");
             var githubWorkspace = Environment.GetEnvironmentVariable("GITHUB_WORKSPACE");
-        
+
             if (!string.IsNullOrEmpty(azureHome))
             {
-                // Azure App Service (Linux or Windows)
-                basePath = Path.Combine(azureHome, "data"); // Writable directory
+                // Azure App Service
+                basePath = Path.Combine(azureHome, "site", "wwwroot", "Data");
             }
             else if (!string.IsNullOrEmpty(githubWorkspace))
             {
-                // GitHub Actions runner environment
-                basePath = githubWorkspace; // Temporary workspace
+                basePath = githubWorkspace;
             }
             else
             {
-                // Local development
-                basePath = Directory.GetCurrentDirectory();
+                basePath = Path.Combine(Directory.GetCurrentDirectory(), "Data");
             }
-        
+
             var username = User.GetUsername();
-        
-            // Sanitize message for filename
+
             var invalidChars = Path.GetInvalidFileNameChars();
             var sanitizedMessage = new string(userMessage.ToLower()
                 .Select(ch => invalidChars.Contains(ch) ? '_' : ch)
                 .ToArray());
-        
+
             var folderPath = Path.Combine(basePath, "AudioTranscription", username);
             var fileName = $"{sanitizedMessage}_{Guid.NewGuid()}_response.mp3";
             var responseAudioPath = Path.Combine(folderPath, fileName);
-        
-            // Ensure directory exists
+
             if (!Directory.Exists(folderPath))
-            {
                 Directory.CreateDirectory(folderPath);
-            }
-        
-            // Delete if accidentally duplicated (very rare with GUID)
+
             if (System.IO.File.Exists(responseAudioPath))
-            {
                 System.IO.File.Delete(responseAudioPath);
-            }
-        
+
             return responseAudioPath;
         }
+
 
     }
 }
