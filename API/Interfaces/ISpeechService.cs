@@ -2,6 +2,6 @@
 {
     public interface ISpeechService
     {
-        public Task<bool> TextToSpeechAsync(string text, string outputFilePath);
+        public Task<string?> TextToSpeechAsync(string username, string text);
     }
 }

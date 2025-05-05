@@ -74,7 +74,14 @@ namespace API.Services
                             var weatherData = await weatherService.GetCurrentWeatherAsync(location);
                             if (weatherData != "User location not found" || weatherData != "Invalid location format" || weatherData != "Failed to fetch weather data")
                             {
-                                cachedWeather = $"The temperature in {intent.City} is: {weatherData}";
+                                if(!string.IsNullOrWhiteSpace(intent.City))
+                                {
+                                    cachedWeather = $"The temperature in {intent.City} is: {weatherData}";
+                                }
+                                else
+                                {
+                                    cachedWeather = $"The temperature in {location} is: {weatherData}";
+                                }
                                 cache.Set(weatherCacheKey, cachedWeather, cacheEntryOptions);
                             }
                             else

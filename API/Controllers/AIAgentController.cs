@@ -4,6 +4,7 @@ using API.Extensions;
 using API.Interfaces;
 using API.Middleware;
 using AutoMapper;
+using Azure;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.SemanticKernel;
@@ -13,8 +14,8 @@ using Microsoft.SemanticKernel.Connectors.AzureOpenAI;
 namespace API.Controllers
 {
     [Authorize]
-    public class AIAgentController(IUserChatHistoryRepository chatHistoryRepository, IChatHandlerService chatHandlerService, ISpeechService speechService, Kernel kernel,
-                                   AzureOpenAIPromptExecutionSettings executionSettings, IMapper mapper) : BaseApiController
+    public class AIAgentController(IUserChatHistoryRepository chatHistoryRepository, IChatHandlerService chatHandlerService, ISpeechService speechService,
+                                   Kernel kernel, AzureOpenAIPromptExecutionSettings executionSettings, IMapper mapper) : BaseApiController
     {
         [HttpPost]
         public async Task<ActionResult<AssistantMessageDto>> Chat([FromBody] UserMessageDto userMessage)
@@ -67,20 +68,15 @@ namespace API.Controllers
             // Update chat history cache
             string cache = await chatHandlerService.SaveChatHistoryAsync(User.GetUsername(), history);
 
-            //check if output path is not created then create it
-            string outputPath = CreateAudioFile(userMessage.Message);
             //convert response to audio and save to file
-            bool isTranscribed = await speechService.TextToSpeechAsync(assistantMessage.Text, outputPath);
-            if (!isTranscribed)
+            string outputPath = await speechService.TextToSpeechAsync(User.GetUsername(), assistantMessage.Text);
+            if (string.IsNullOrWhiteSpace(outputPath))
             {
                 return BadRequest("Failed to transcribe text to speech.");
             }
-            // Get the relative path (e.g. "AudioTranscription/nomi/audio.mp3")
-            var relativePath = Path.GetRelativePath(Directory.GetCurrentDirectory(), outputPath)
-                                    .Replace("\\", "/"); // Normalize for URLs
 
             // Save the audio file path to the DTO
-            assistantMessage.AudioFilePath = relativePath;
+            assistantMessage.AudioFilePath = outputPath;
             return Ok(assistantMessage);
         }
 
@@ -114,37 +110,5 @@ namespace API.Controllers
             return Ok(userChatHistory);
         }
 
-        private string CreateAudioFile(string userMessage)
-        {
-            // Use a consistent and safe base path — works on Azure and locally
-            string basePath = Path.Combine(AppContext.BaseDirectory, "Data");
-
-            var username = User.GetUsername();
-
-            // Sanitize the user message for safe filename usage
-            var invalidChars = Path.GetInvalidFileNameChars();
-            var sanitizedMessage = new string(userMessage.ToLower()
-                .Select(ch => invalidChars.Contains(ch) ? '_' : ch)
-                .ToArray());
-
-            // Build full folder and file path
-            var folderPath = Path.Combine(basePath, "AudioTranscription", username);
-            var fileName = $"{sanitizedMessage}_{Guid.NewGuid()}_response.mp3";
-            var responseAudioPath = Path.Combine(folderPath, fileName);
-
-            if (!Directory.Exists(folderPath))
-            {
-                // Create the directory if it doesn't exist
-                Directory.CreateDirectory(folderPath);
-            }
-
-            // Optionally delete if somehow exists (super rare)
-            if (System.IO.File.Exists(responseAudioPath))
-            {
-                System.IO.File.Delete(responseAudioPath);
-            }
-
-            return responseAudioPath;
-        }
     }
 }

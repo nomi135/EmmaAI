@@ -18,8 +18,10 @@
             <button type="button" class="btn btn-light btn-icon disabled">
               <i class="bi bi-upload"></i>
             </button>
-            <button type="button" class="btn btn-light btn-icon disabled">
-              <i class="bi bi-mic"></i>
+            <button [disabled]="!chatCompleted"
+              (click)="toggleListening()" type="button" class="btn btn-light btn-icon">
+              <i *ngIf="!isListening" class="bi bi-mic"></i>
+              <i *ngIf="isListening" class="bi bi-stop-circle"></i>
             </button>
           </div>
     
@@ -30,10 +32,11 @@
             [(ngModel)]="userMessage.Message"
             placeholder="ask emma..." />
     
-          <button [disabled]="!chatForm.dirty || userMessage.Message.length==0 || !chatCompleted" 
+          <button [disabled]="(!chatForm.dirty || userMessage.Message.length==0 || !chatCompleted) && !isPlaying" 
               type="submit" class="btn btn-primary send-button">
-              <i *ngIf="!loading" class="bi bi-send-fill" role="status"></i> 
-              <i *ngIf="loading" class="bi bi-bootstrap-reboot spinner-grow" role="status"></i> 
+              <i *ngIf="!loading && !isPlaying" class="bi bi-send-fill" role="status"></i> 
+              <i *ngIf="loading && !isPlaying" class="bi bi-bootstrap-reboot spinner-grow" role="status"></i> 
+              <i *ngIf="isPlaying" class="bi bi-stop-btn" role="status"></i> 
           </button>
         </div>
       </div>

@@ -36,6 +36,7 @@ namespace API.Extensions
             services.AddScoped<INewsService, NewsService>();
             services.AddScoped<IUserInfoService, UserInfoService>();
             services.AddScoped<ISpeechService, SpeechService>();
+            services.AddScoped<IFileService, FileService>();
             services.AddScoped<IContactRepository, ContactRepository>();
             services.AddScoped<IUserChatHistoryRepository, UserChatHistoryRepository>();
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());

@@ -5,18 +5,17 @@ using System.Text.RegularExpressions;
 
 namespace API.Services
 {
-    public class SpeechService(IConfiguration config) : ISpeechService
+    public class SpeechService(IConfiguration config, IFileService fileService) : ISpeechService
     {
         private readonly string subscriptionKey = config.GetValue<string>("AzureOpenAI:ApiKey") ?? throw new Exception("AzureOpenAI API key not found");
         private readonly string region = config.GetValue<string>("AzureOpenAI:Region") ?? throw new Exception("AzureOpenAI region not found");
-        public async Task<bool> TextToSpeechAsync(string text, string outputFilePath)
+        public async Task<string?> TextToSpeechAsync(string username, string text)
         {
             var config = SpeechConfig.FromSubscription(subscriptionKey, region);
             //config.SpeechSynthesisVoiceName = "en-US-JennyMultilingualNeural"; // You can change voice
             config.SetSpeechSynthesisOutputFormat(SpeechSynthesisOutputFormat.Audio16Khz32KBitRateMonoMp3);
 
-            using var audioConfig = AudioConfig.FromWavFileOutput(outputFilePath);
-            using var synthesizer = new SpeechSynthesizer(config, audioConfig);
+            using var synthesizer = new SpeechSynthesizer(config);
 
             // Sanitize the text to remove emojis and other unsupported characters
             text = SanitizeForTTS(text);
@@ -34,18 +33,19 @@ namespace API.Services
 
             var result = await synthesizer.SpeakSsmlAsync(ssml);
 
+            string audioFilePath = null;
+
             if (result.Reason == ResultReason.SynthesizingAudioCompleted)
             {
-                Console.WriteLine($"TTS succeeded, saved to: {outputFilePath}");
+                audioFilePath = await fileService.CreateAudioFileAsync(username, text, result.AudioData);
             }
             else if (result.Reason == ResultReason.Canceled)
             {
                 var cancellation = SpeechSynthesisCancellationDetails.FromResult(result);
                 Console.WriteLine($"TTS failed: {cancellation.Reason}, {cancellation.ErrorDetails}");
-                return false;
             }
 
-            return true;
+            return audioFilePath;
         }
 
         private static string SanitizeForTTS(string input)

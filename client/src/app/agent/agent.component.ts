@@ -1,4 +1,4 @@
-import { Component, ElementRef, inject, OnInit, QueryList, signal, ViewChild, ViewChildren } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, inject, OnInit, QueryList, signal, ViewChild, ViewChildren } from '@angular/core';
 import { AgentService } from '../_services/agent.service';
 import { UserMessage } from '../_models/user-message';
 import { FormsModule, NgForm } from '@angular/forms';
@@ -6,7 +6,7 @@ import { ToastrService } from 'ngx-toastr';
 import { UserChatHistory } from '../_models/user-chat-history';
 import { AgentMessage } from '../_models/agent-message';
 import { CommonModule, NgFor, NgIf } from '@angular/common';
-import { environment } from '../../environments/environment';
+import { VoiceRecognitionService } from '../_services/voice-recognition.service';
 
 @Component({
   selector: 'app-agent',
@@ -25,14 +25,33 @@ export class AgentComponent implements OnInit {
 
   agentService = inject(AgentService);
   private toastr = inject(ToastrService);
-  baseUrl = environment.apiUrl;
   userMessage: UserMessage = { Message: '' };
   chatHistory = signal<UserChatHistory[]>([]);
   chatCompleted = true;
   loading = false;
+  isListening = false;
+  isPlaying = false;
+  audioPlayer: HTMLAudioElement | null = null;
 
   ngOnInit(): void {
     this.loadMesages();
+  }
+
+  constructor(private voiceService: VoiceRecognitionService,  private cdRef: ChangeDetectorRef) {}
+
+  toggleListening() {
+    this.isListening = !this.isListening;
+    if (this.isListening) {
+      this.voiceService.start();
+    } else {
+      this.voiceService.stop().then(transcript => {
+        this.cdRef.detectChanges(); // 👈 Force update
+        if (transcript != null && transcript.trim() !== '') {
+          this.userMessage.Message = transcript;
+          this.sendMessage();
+        }
+      });
+    }
   }
 
   loadMesages() {
@@ -47,6 +66,15 @@ export class AgentComponent implements OnInit {
   }
   
   sendMessage() {
+    if (this.audioPlayer) {
+      this.audioPlayer.pause();
+      this.audioPlayer.currentTime = 0;
+      this.isPlaying = false;
+      this.chatCompleted = true;
+      this.audioPlayer = null;
+      return;
+    }
+
     this.chatCompleted = false;
     this.loading = true;
     // Create user history object
@@ -70,20 +98,34 @@ export class AgentComponent implements OnInit {
         this.chatHistory.update(history => [...history, agentHistory]);  // Add agent message
         // Autoplay audio and only set loading = false after audio finishes
         if (agentMessage.audioFilePath) {
-          agentMessage.audioFilePath = this.baseUrl + agentMessage.audioFilePath;
-          const audio = new Audio(agentMessage.audioFilePath);
-          audio.play().catch(err => {
+          this.audioPlayer = new Audio(agentMessage.audioFilePath);
+          this.audioPlayer.play().catch(err => {
             console.error('Audio playback failed', err);
-            this.loading = false; // fallback
           });
 
-          audio.onended = () => {
+          this.audioPlayer.onplay = () => {
+            this.loading = false;
+            this.isPlaying = true;
+          };
+
+          this.audioPlayer.onended = () => {
             this.loading = false;
             this.chatCompleted = true;
+            this.isPlaying = false;
           };
+
+          this.audioPlayer.onerror = (err) => {
+            console.error('Audio playback error:', err);
+            this.loading = false;
+            this.isPlaying = false;
+            this.audioPlayer = null;
+            this.chatCompleted = true;
+          };
+
         } else {
           this.loading = false;
           this.chatCompleted = true;
+          this.isPlaying = false;
         }
         // Reset the chat form
         this.userMessage.Message = '';
