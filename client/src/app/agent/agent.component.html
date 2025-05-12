@@ -15,11 +15,22 @@
       <div class="chat-input-area">
         <div class="input-container">
           <div class="extra-buttons">
-            <button type="button" class="btn btn-light btn-icon disabled">
+            <button type="button"
+              class="btn btn-light btn-icon"
+              title="Upload document"
+              [disabled]="!chatCompleted"
+              (click)="fileInput.click()">
               <i class="bi bi-upload"></i>
             </button>
+
+            <input type="file"
+              #fileInput
+              (change)="onFileSelected($event)"
+              style="display: none;"
+              accept=".pdf,.doc,.docx,.txt,.md" />
+
             <button [disabled]="!chatCompleted"
-              (click)="toggleListening()" type="button" class="btn btn-light btn-icon">
+              (click)="toggleListening()" type="button" class="btn btn-light btn-icon" title="Ask Emma">
               <i *ngIf="!isListening" class="bi bi-mic"></i>
               <i *ngIf="isListening" class="bi bi-stop-circle"></i>
             </button>

@@ -8,7 +8,8 @@ using Microsoft.Extensions.Caching.Memory;
 
 namespace API.Services
 {
-    public class IntentService(Kernel kernel, IWeatherService weatherService, INewsService newsService, IUserInfoService userInfoService, IMemoryCache cache) : IIntentService
+    public class IntentService(Kernel kernel, IWeatherService weatherService, INewsService newsService, IUserInfoService userInfoService,
+                               IDocumentService documentService, IMemoryCache cache) : IIntentService
     {
         // Cache expiration period – adjust as needed.
         MemoryCacheEntryOptions cacheEntryOptions = new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromHours(1));
@@ -46,7 +47,7 @@ namespace API.Services
         }
 
         [Description("Gets a response based on the detected intent.")]
-        public async Task<string?> GetIntentBasedResponseAsync(IntentDto? intent)
+        public async Task<string?> GetIntentBasedResponseAsync(IntentDto? intent, string userQuery)
         {
             string? response = string.Empty;
             switch (intent.Intent)
@@ -74,13 +75,13 @@ namespace API.Services
                             var weatherData = await weatherService.GetCurrentWeatherAsync(location);
                             if (weatherData != "User location not found" || weatherData != "Invalid location format" || weatherData != "Failed to fetch weather data")
                             {
-                                if(!string.IsNullOrWhiteSpace(intent.City))
+                                if (!string.IsNullOrWhiteSpace(intent.City))
                                 {
                                     cachedWeather = $"The temperature in {intent.City} is: {weatherData}";
                                 }
                                 else
                                 {
-                                    cachedWeather = $"The temperature in {location} is: {weatherData}";
+                                    cachedWeather = $"The temperature is: {weatherData}";
                                 }
                                 cache.Set(weatherCacheKey, cachedWeather, cacheEntryOptions);
                             }
@@ -118,6 +119,14 @@ namespace API.Services
                             }
                         }
                         response = cachedNews;
+                    }
+                    break;
+                case "SearchDocument":
+                    string username = await userInfoService.GetUserInfoAsync("username");
+                    if (!string.IsNullOrWhiteSpace(username))
+                    {
+                        string documentSearchResult = await documentService.SearchDocumentAsync(username, userQuery);
+                        response = documentSearchResult;
                     }
                     break;
                 default:

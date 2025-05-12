@@ -1,5 +1,7 @@
 ﻿using API.Interfaces;
 using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
+using System.ComponentModel;
 using System.Text.RegularExpressions;
 
 namespace API.Services
@@ -16,6 +18,8 @@ namespace API.Services
             containerClient = new BlobContainerClient(new Uri(blobSasUrl));
             containerBaseUrl = blobSasUrl.Split('?')[0]; // Just the base container URL
         }
+
+        [Description("Creates an audio file in Azure Blob Storage and returns the URL.")]
         public async Task<string> CreateAudioFileAsync(string username, string text, byte[] audioBytes)
         {
             // Sanitize message
@@ -34,5 +38,6 @@ namespace API.Services
             // Reconstruct full URL with SAS token for frontend use
             return $"{containerBaseUrl}/{blobPath}{containerClient.Uri.Query}";
         }
+
     }
 }

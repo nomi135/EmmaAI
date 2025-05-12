@@ -48,11 +48,30 @@ export class AgentComponent implements OnInit {
         this.cdRef.detectChanges(); // 👈 Force update
         if (transcript != null && transcript.trim() !== '') {
           this.userMessage.Message = transcript;
-          this.sendMessage();
+          setTimeout(() => {
+            this.sendMessage();
+          }, 100);
         }
       });
     }
   }
+
+  onFileSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) return;
+  
+    const file = input.files[0];
+    const maxSizeMB = 5;
+    const maxSizeBytes = maxSizeMB * 1024 * 1024;
+  
+    if (file.size > maxSizeBytes) {
+      this.toastr.error(`File is too large. Max size allowed is ${maxSizeMB} MB.`);
+      return;
+    }
+  
+    this.uploadDocument(file); 
+  }
+  
 
   loadMesages() {
     this.agentService.loadMessages().subscribe({
@@ -61,10 +80,27 @@ export class AgentComponent implements OnInit {
           chatHistoryResult.filter(message => message.chatRole !== 'system')
         );
       },
-      error: error => this.toastr.success(error)
+      error: error => this.toastr.error(error.message)
     });
   }
   
+  uploadDocument(file: File) {
+    this.loading = true;
+    this.chatCompleted = false;
+    this.agentService.uploadDocument(file).subscribe({
+      next: _ => {
+        this.loading = false;
+        this.chatCompleted = true;
+        this.toastr.success('Document uploaded successfully')
+      },
+      error: error => {
+        this.loading = false;
+        this.chatCompleted = true;
+        this.toastr.error(error.message)
+      }
+    });
+  }
+
   sendMessage() {
     if (this.audioPlayer) {
       this.audioPlayer.pause();
@@ -132,7 +168,7 @@ export class AgentComponent implements OnInit {
         this.scrollToLastMessage();
       },
       error: error => {
-        this.toastr.success(error);
+        this.toastr.error(error.message);
         this.loading = false;
         // Reset the chat form
         this.userMessage.Message = '';

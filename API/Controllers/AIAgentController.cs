@@ -3,21 +3,24 @@ using API.Entities;
 using API.Extensions;
 using API.Interfaces;
 using API.Middleware;
+using API.Services;
 using AutoMapper;
 using Azure;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.AzureOpenAI;
+using System.Text.Json;
 
 namespace API.Controllers
 {
     [Authorize]
     public class AIAgentController(IUserChatHistoryRepository chatHistoryRepository, IChatHandlerService chatHandlerService, ISpeechService speechService,
-                                   Kernel kernel, AzureOpenAIPromptExecutionSettings executionSettings, IMapper mapper) : BaseApiController
+                                   IDocumentService documentService, Kernel kernel, AzureOpenAIPromptExecutionSettings executionSettings, IMapper mapper) : BaseApiController
     {
-        [HttpPost]
+        [HttpPost("chat")]
         public async Task<ActionResult<AssistantMessageDto>> Chat([FromBody] UserMessageDto userMessage)
         {
             ChatHistory history = new ChatHistory();
@@ -78,6 +81,24 @@ namespace API.Controllers
             // Save the audio file path to the DTO
             assistantMessage.AudioFilePath = outputPath;
             return Ok(assistantMessage);
+        }
+
+        [HttpPost("uploaddocument")]
+        [RequestSizeLimit(5 * 1024 * 1024)] // Limit file size to 5 MB
+        public async Task<ActionResult> UploadDocument([FromForm] IFormFile? file)
+        {
+            if (file == null)
+            {
+                return BadRequest("No document selected to upload.");
+            }
+
+            if (file.Length > 5 * 1024 * 1024)
+            {
+                return BadRequest("document size exceeds the 5 MB limit.");
+            }
+
+            var result = await documentService.SaveDocumentAsync(file, User.GetUsername());
+            return Ok();
         }
 
         [HttpGet]

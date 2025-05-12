@@ -1,6 +1,6 @@
 ﻿using API.Interfaces;
 using Microsoft.CognitiveServices.Speech;
-using Microsoft.CognitiveServices.Speech.Audio;
+using System.ComponentModel;
 using System.Text.RegularExpressions;
 
 namespace API.Services
@@ -9,6 +9,8 @@ namespace API.Services
     {
         private readonly string subscriptionKey = config.GetValue<string>("AzureOpenAI:ApiKey") ?? throw new Exception("AzureOpenAI API key not found");
         private readonly string region = config.GetValue<string>("AzureOpenAI:Region") ?? throw new Exception("AzureOpenAI region not found");
+
+        [Description("Use microsoft cognitive service to implement text to speech")]
         public async Task<string?> TextToSpeechAsync(string username, string text)
         {
             var config = SpeechConfig.FromSubscription(subscriptionKey, region);
@@ -48,6 +50,7 @@ namespace API.Services
             return audioFilePath;
         }
 
+        [Description("remove emogis from text")]
         private static string SanitizeForTTS(string input)
         {
             return Regex.Replace(input, @"[^\u0000-\u007F]+", string.Empty); // Removes emojis

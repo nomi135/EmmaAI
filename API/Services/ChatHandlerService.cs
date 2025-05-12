@@ -20,7 +20,7 @@ namespace API.Services
             IntentDto? intent = await intentService.DetectIntentAsync(userInput);
             if (!string.IsNullOrWhiteSpace(intent.Intent))
             {
-                response = await intentService.GetIntentBasedResponseAsync(intent);
+                response = await intentService.GetIntentBasedResponseAsync(intent, userInput);
             }
             return (response, intent);
         }
@@ -84,7 +84,8 @@ namespace API.Services
             var history = new ChatHistory();
 
             // Load prompt from external file
-            /*var promptFilePath = Path.Combine(AppContext.BaseDirectory, "Prompts", "IntentDetectionPrompt.txt");
+            /*
+            var promptFilePath = Path.Combine(AppContext.BaseDirectory, "Prompts", "IntentDetectionPrompt.txt");
 
             if (File.Exists(promptFilePath))
             {

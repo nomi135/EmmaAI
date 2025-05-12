@@ -2,6 +2,7 @@
 using API.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
+using System.ComponentModel;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -10,6 +11,7 @@ namespace API.Services
 {
     public class TokenService(IConfiguration config, UserManager<AppUser> userManager) : ITokenService
     {
+        [Description("Creates a JWT token for the user")]
         public async Task<string> CreateToken(AppUser user)
         {
             var tokenKey = config["TokenKey"] ?? throw new Exception("Cannot access tokenKey from appsettings");

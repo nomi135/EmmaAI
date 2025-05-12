@@ -1,9 +1,9 @@
 import { inject, Injectable } from '@angular/core';
-import { environment } from '../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { UserMessage } from '../_models/user-message';
 import { UserChatHistory } from '../_models/user-chat-history';
 import { AgentMessage } from '../_models/agent-message';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -17,6 +17,12 @@ export class AgentService {
   }
   
   Chat(message: UserMessage) {
-    return this.http.post<AgentMessage>(this.baseUrl + 'aiagent', message)
+    return this.http.post<AgentMessage>(this.baseUrl + 'aiagent/chat', message)
+  }
+
+  uploadDocument(file: File) {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<AgentMessage>(this.baseUrl + 'aiagent/uploaddocument', formData)
   }
 }

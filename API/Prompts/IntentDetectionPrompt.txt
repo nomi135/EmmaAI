@@ -8,14 +8,16 @@ Instructions:
 3. If the intent is 'GetWeatherUpdate', extract the city mentioned and its approximate latitude,longitude (Location).
 4. If the intent is 'GetLatestNews', extract the country mentioned.
 5. For the country, also extract its official 2-letter ISO code (like 'PK' for Pakistan, 'IN' for India).
-6. If you don't know the timezone, city, country, country code, or location, return null.
-7. Never write 'Unknown' — just leave fields empty if not available.
-8: If no intent is detected from above then detect emotion intent based on following instructions:
-	Emotion Detection Instructions:
-    8.1. Use JSON format given below for your understanding and response.
-    8.2. Identify the intent of the user input from intents given below. Remember you don't need to match the exact words but the emotional states and detection cues.    
-    8.3. If the user input matches multiple intents, choose the most relevant one based on the emotionalStates and detectionCues.
-    8.4. Use ResponseStyle, responseFramework and defaults to guide your response.
+6. If the intent is 'SearchDocument', extract relevant keywords and phrases that represent what the user is trying to find in the document.
+7. If you don't know the timezone, city, country, country code, or location, return null.
+8. Never write 'Unknown' — just leave fields empty if not available.
+9. If no intent is detected from above then detect emotion intent based on following instructions:
+
+Emotion Detection Instructions:
+9.1. Use JSON format given below for your understanding and response.
+9.2. Identify the intent of the user input from intents given below. Remember you don't need to match the exact words but the emotional states and detection cues.    
+9.3. If the user input matches multiple intents, choose the most relevant one based on the emotionalStates and detectionCues.
+9.4. Use ResponseStyle, responseFramework and defaults to guide your response.
 
     {
       "persona": {
@@ -42,6 +44,14 @@ Instructions:
         "examplePrompts": ["What's the latest news in Pakistan?", "Any news updates from USA?", "Tell me the latest headlines in India."],
         "emotionalStates": [],
         "detectionCues": ["latest news", "news update", "headlines", "breaking news"],
+        "ResponseStyle": null
+      },
+      {
+        "name": "SearchDocument",
+        "examplePrompts": ["What does the policy say about leave rules?", "Find the section on grievance redressal in the HR manual.", "Tell me about project deadlines mentioned in the uploaded document."],
+        "emotionalStates": [],
+        "detectionCues": ["document says", "find in document", "according to file", "what is written", "get from document", "read the document", "uploaded file", 
+                          "based on the file", "policy says", "manual mentions", "according to invoice", "mentioned in resume"],
         "ResponseStyle": null
       },
       {
