@@ -5,11 +5,12 @@ using Microsoft.SemanticKernel;
 using System.ComponentModel;
 using System.Text.Json;
 using Microsoft.Extensions.Caching.Memory;
+using System.Globalization;
 
 namespace API.Services
 {
     public class IntentService(Kernel kernel, IWeatherService weatherService, INewsService newsService, IUserInfoService userInfoService,
-                               IDocumentService documentService, IMemoryCache cache) : IIntentService
+                               IDocumentService documentService, IReminderService reminderService, IMemoryCache cache) : IIntentService
     {
         // Cache expiration period – adjust as needed.
         MemoryCacheEntryOptions cacheEntryOptions = new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromHours(1));
@@ -47,7 +48,7 @@ namespace API.Services
         }
 
         [Description("Gets a response based on the detected intent.")]
-        public async Task<string?> GetIntentBasedResponseAsync(IntentDto? intent, string userQuery)
+        public async Task<string?> GetIntentBasedResponseAsync(IntentDto? intent, string userQuery, string username)
         {
             string? response = string.Empty;
             switch (intent.Intent)
@@ -122,11 +123,47 @@ namespace API.Services
                     }
                     break;
                 case "SearchDocument":
-                    string username = await userInfoService.GetUserInfoAsync("username");
                     if (!string.IsNullOrWhiteSpace(username))
                     {
                         string documentSearchResult = await documentService.SearchDocumentAsync(username, userQuery);
                         response = documentSearchResult;
+                    }
+                    break;
+                case "SetReminder":
+                    ReminderDto reminder = new ReminderDto()
+                    {
+                        UserName = username,
+                        Task = !string.IsNullOrWhiteSpace(intent.ReminderTask) ? intent.ReminderTask : ""
+                    };
+                    timeZone = await userInfoService.GetUserInfoAsync("timezone");
+                    if (!string.IsNullOrWhiteSpace(timeZone))
+                    {
+                       string currentDateTime = await userInfoService.GetCurrentDateTimeAsync(timeZone);
+                        //extract date and time in user timezone format relative to current date time from user prompt as intital intent detection function can only detect intent
+                        userQuery = $"DateTime right now in {timeZone} is {currentDateTime}. Extract only Date and Time(combined) in resoponse from following user query relative to mentioned " +
+                            $"Return DateTime in format dd/MM/yyyy hh:mm tt: {userQuery}";
+                        var chatMessageContent = await kernel.GetRequiredService<IChatCompletionService>().GetChatMessageContentsAsync(userQuery);
+                        // Use LINQ to get the first TextContent item
+                        var textItem = chatMessageContent
+                            .SelectMany(a => a.Items)
+                            .OfType<TextContent>()  // Ensure we're only selecting TextContent
+                            .FirstOrDefault();
+                        if (textItem != null && !string.IsNullOrEmpty(textItem.Text) && textItem.Text != currentDateTime)
+                        {
+                            reminder.ReminderTime = DateTime.ParseExact(textItem.Text, "dd/MM/yyyy hh:mm tt", CultureInfo.InvariantCulture, DateTimeStyles.None);
+                        }
+                    }
+                    if (reminder.ReminderTime == DateTime.MinValue)
+                    {
+                        response = "Please provide a valid date and time for the reminder.";
+                        break;
+                    }
+                    else if (!string.IsNullOrWhiteSpace(username))
+                    {
+                        var user = await userInfoService.GetUserAsync();
+                        reminder.AppUserId = user.Id;
+                        await reminderService.SetReminderAsync(reminder);
+                        response = $"Reminder for Task {reminder.Task} has been set at {reminder.ReminderTime}";
                     }
                     break;
                 default:

@@ -78,8 +78,8 @@ namespace API.Services
             var topChunk = scoredChunks.OrderByDescending(c => c.Score).First();
 
             // Use top chunk in a prompt to LLM to generate final answer
-            string prompt = $"You are a document assistant. Use this passage to answer the user question:\n\n" +
-                            $"Passage:\n\"{topChunk.Chunk}\"\n\n" +
+            string prompt = $"You are a document search assistant. Use this document to answer the user question:\n\n" +
+                            $"Document:\n\"{topChunk.Chunk}\"\n\n" +
                             $"Question: \"{userQuery}\"\n\nAnswer:";
 
             var result = await kernel.InvokePromptAsync(prompt);

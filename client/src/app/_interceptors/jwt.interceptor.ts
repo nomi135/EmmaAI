@@ -11,7 +11,7 @@ export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
         Authorization: `Bearer ${accountService.currentUser()?.token}`
       }
     })
-  }
+  } 
 
   return next(req);
 };

@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, ElementRef, inject, OnInit, QueryList, signal, ViewChild, ViewChildren } from '@angular/core';
+import { AfterViewChecked, ChangeDetectorRef, Component, ElementRef, inject, OnInit, QueryList, signal, ViewChild, ViewChildren } from '@angular/core';
 import { AgentService } from '../_services/agent.service';
 import { UserMessage } from '../_models/user-message';
 import { FormsModule, NgForm } from '@angular/forms';
@@ -15,13 +15,9 @@ import { VoiceRecognitionService } from '../_services/voice-recognition.service'
   templateUrl: './agent.component.html',
   styleUrl: './agent.component.css'
 })
-export class AgentComponent implements OnInit {
+export class AgentComponent implements OnInit, AfterViewChecked {
   @ViewChild('editForm') chatForm?: NgForm;
-  @ViewChildren('messageDiv') messageDivs!: QueryList<ElementRef>;
-
-  ngAfterViewInit() {
-    this.scrollToLastMessage(); // Optional: scroll initially if needed
-  }
+  @ViewChild('scrollMe') scrollContainer?: any;
 
   agentService = inject(AgentService);
   private toastr = inject(ToastrService);
@@ -35,6 +31,10 @@ export class AgentComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadMesages();
+  }
+
+  ngAfterViewChecked(): void {
+    this.scrollToBottom();
   }
 
   constructor(private voiceService: VoiceRecognitionService,  private cdRef: ChangeDetectorRef) {}
@@ -165,7 +165,7 @@ export class AgentComponent implements OnInit {
         }
         // Reset the chat form
         this.userMessage.Message = '';
-        this.scrollToLastMessage();
+        this.scrollToBottom();
       },
       error: error => {
         this.toastr.error(error.message);
@@ -179,14 +179,11 @@ export class AgentComponent implements OnInit {
   formatMessage(message: string): string {
     return message.replace(/\n/g, '<br>');
   }
-
-  private scrollToLastMessage() {
-    setTimeout(() => {
-      const lastMessage = this.messageDivs?.last;
-      if (lastMessage) {
-        lastMessage.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'end' });
-      }
-    }, 0);
+  
+  private scrollToBottom() {
+    if (this.scrollContainer) {
+      this.scrollContainer.nativeElement.scrollTop = this.scrollContainer.nativeElement.scrollHeight;
+    }
   }
 
 }

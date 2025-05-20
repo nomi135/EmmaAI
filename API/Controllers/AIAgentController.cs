@@ -17,7 +17,7 @@ using System.Text.Json;
 namespace API.Controllers
 {
     [Authorize]
-    public class AIAgentController(IUserChatHistoryRepository chatHistoryRepository, IChatHandlerService chatHandlerService, ISpeechService speechService,
+    public class AIAgentController(IUnitOfWork unitOfWork, IChatHandlerService chatHandlerService, ISpeechService speechService,
                                    IDocumentService documentService, Kernel kernel, AzureOpenAIPromptExecutionSettings executionSettings, IMapper mapper) : BaseApiController
     {
         [HttpPost("chat")]
@@ -39,7 +39,7 @@ namespace API.Controllers
 
             history.AddUserMessage(userMessage.Message);
 
-            var (result, intent) = await chatHandlerService.ProcessUserInputAsync(userMessage.Message);
+            var (result, intent) = await chatHandlerService.ProcessUserInputAsync(userMessage.Message, User.GetUsername());
             var textItem = new TextContent(result);
             if (string.IsNullOrEmpty(result))
             {
@@ -124,7 +124,7 @@ namespace API.Controllers
             //if not found in cache, get from database
             if (chatHistory == null || chatHistory.Count == 0)
             {
-                var histories = await chatHistoryRepository.GetUserChatHistory(User.GetUserId());
+                var histories = await unitOfWork.UserChatHistoryRepository.GetUserChatHistoryAsync(User.GetUserId());
                 userChatHistory = mapper.Map<IEnumerable<UserChatHistoryDto>>(histories).ToList();
             }
 

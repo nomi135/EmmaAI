@@ -2,6 +2,6 @@
 {
     public interface IFileService
     {
-        public Task<string> CreateAudioFileAsync(string username, string text, byte[] audioBytes);
+        Task<string> CreateAudioFileAsync(string username, string text, byte[] audioBytes);
     }
 }

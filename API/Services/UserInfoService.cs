@@ -5,11 +5,12 @@ using System.Security.Claims;
 
 namespace API.Services
 {
-    public class UserInfoService(IHttpContextAccessor httpContextAccessor) : IUserInfoService
+    public class UserInfoService(IHttpContextAccessor httpContextAccessor) : IUserInfoService //cannot use IHttpContextAccessor due to hangfire
     {
         [Description("Gets the user information")]
         public async Task<string?> GetUserInfoAsync(string property)
         {
+            // Get the user entity based on the username
             var user = await GetUserAsync();
             if (user == null)
                 return null;
@@ -65,7 +66,7 @@ namespace API.Services
 
             DateTime dateTime = DateTime.UtcNow.AddHours(hours * sign).AddMinutes(minutes * sign);
 
-            return await Task.FromResult(dateTime.ToString());
+            return await Task.FromResult(dateTime.ToString("dd/MM/yyyy hh:mm tt"));
         }
     }
 }

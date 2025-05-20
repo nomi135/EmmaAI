@@ -3,6 +3,7 @@ import { computed, inject, Injectable, signal } from '@angular/core';
 import { User } from '../_models/user';
 import { map } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { PresenceService } from './presence.service';
 
 @Injectable({
   providedIn: 'root'
@@ -10,8 +11,8 @@ import { environment } from '../../environments/environment';
 export class AccountService {
   private http = inject(HttpClient);
   baseUrl = environment.apiUrl;
-  // Initialize signal with whatever is in localStorage
-  currentUser = signal<User | null>(this.getUserFromLocalStorage());
+  private presenceService = inject(PresenceService);
+  currentUser = signal<User | null>(null);
   roles = computed(() => {
     const user = this.currentUser();
     if(user && user.token) {
@@ -45,23 +46,12 @@ export class AccountService {
   setCurrentUser(user: User) {
     localStorage.setItem('user', JSON.stringify(user));
     this.currentUser.set(user);
+    this.presenceService.CreateHubConnection(user);
   }
 
   logout(){
       localStorage.removeItem('user');
-      this.currentUser.set(null)
+      this.currentUser.set(null);
+      this.presenceService.stopHubConnection();
     }
-
-  // Utility: Load user from localStorage
-  private getUserFromLocalStorage(): User | null {
-    const userJson = localStorage.getItem('user');
-    if (!userJson) return null;
-
-    try {
-      return JSON.parse(userJson) as User;
-    } catch (error) {
-      console.error('Failed to parse user from localStorage', error);
-      return null;
-    }
-  }
 }

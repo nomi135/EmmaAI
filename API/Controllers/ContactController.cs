@@ -6,14 +6,14 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers
 {
-    public class ContactController(IContactRepository contactRepository, IMapper mapper) : BaseApiController
+    public class ContactController(IUnitOfWork unitOfWork, IMapper mapper) : BaseApiController
     {
         [HttpPost]
         public async Task<ActionResult<ContactDto>> AddContact([FromBody]ContactDto contactDto)
         {
             var contact = mapper.Map<Contact>(contactDto);
-            contactRepository.AddContact(contact);
-            if (await contactRepository.SaveAllAsync())
+            unitOfWork.ContactRepository.AddContact(contact);
+            if (await unitOfWork.Complete())
                 return NoContent();
             
             return BadRequest("Failed to submit message");

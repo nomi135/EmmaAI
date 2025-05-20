@@ -1,7 +1,11 @@
 ﻿using API.Data;
+using API.HangFire;
 using API.Helpers;
 using API.Interfaces;
 using API.Services;
+using API.SignalR;
+using Hangfire;
+using Hangfire.SqlServer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Connectors.AzureOpenAI;
@@ -20,7 +24,7 @@ namespace API.Extensions
             });
 
             //Register IHttpContextAccessor first
-            services.AddHttpContextAccessor();
+            services.AddHttpContextAccessor(); // cannot use IHttpContextAccessor due to hangfire
             //Register HttpClient
             services.AddScoped<HttpClient>();
             //Register other services
@@ -37,8 +41,20 @@ namespace API.Extensions
             services.AddScoped<ISpeechService, SpeechService>();
             services.AddScoped<IFileService, FileService>();
             services.AddScoped<IDocumentService, DocumentService>();
+            services.AddScoped<IReminderService, ReminderService>();
             services.AddScoped<IContactRepository, ContactRepository>();
             services.AddScoped<IUserChatHistoryRepository, UserChatHistoryRepository>();
+            services.AddScoped<IReminderRepository, ReminderRepository>();
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
+            services.AddHangfire(cnfg => 
+                cnfg.SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
+                .UseSimpleAssemblyNameTypeSerializer()
+                .UseRecommendedSerializerSettings()
+                .UseSqlServerStorage(config.GetConnectionString("dbConnection")));
+            services.AddHangfireServer();
+            services.AddSignalR();
+            services.AddSingleton<PresenceTracker>();
+            services.AddScoped<ReminderJobService>();
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
             //AI agent services

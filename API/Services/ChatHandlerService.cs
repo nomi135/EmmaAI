@@ -13,14 +13,14 @@ namespace API.Services
         MemoryCacheEntryOptions cacheEntryOptions = new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromHours(1));
 
         [Description("Processes user input and returns a response based on the detected intent.")]
-        public async Task<(string? result, IntentDto intent)> ProcessUserInputAsync(string userInput)
+        public async Task<(string? result, IntentDto intent)> ProcessUserInputAsync(string userInput, string userName)
         {
             string? response = null;
             // Detect intent dynamically.
             IntentDto? intent = await intentService.DetectIntentAsync(userInput);
             if (!string.IsNullOrWhiteSpace(intent.Intent))
             {
-                response = await intentService.GetIntentBasedResponseAsync(intent, userInput);
+                response = await intentService.GetIntentBasedResponseAsync(intent, userInput, userName);
             }
             return (response, intent);
         }
@@ -111,5 +111,4 @@ namespace API.Services
         }
 
     }
-
 }

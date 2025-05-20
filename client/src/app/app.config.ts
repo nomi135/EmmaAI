@@ -8,6 +8,7 @@ import { errorInterceptor } from './_interceptors/error.interceptor';
 import { jwtInterceptor } from './_interceptors/jwt.interceptor';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { TimeagoModule } from 'ngx-timeago';
+import { NgxSpinnerModule } from 'ngx-spinner';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -18,6 +19,6 @@ export const appConfig: ApplicationConfig = {
       positionClass: 'toast-bottom-right',
       timeOut: 5000
     }),
-    importProvidersFrom(TimeagoModule.forRoot())
+    importProvidersFrom(NgxSpinnerModule, TimeagoModule.forRoot())
   ]
 };

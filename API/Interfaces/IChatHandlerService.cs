@@ -5,7 +5,7 @@ namespace API.Interfaces
 {
     public interface IChatHandlerService
     {
-        Task<(string? result, IntentDto intent)> ProcessUserInputAsync(string userInput);
+        Task<(string? result, IntentDto intent)> ProcessUserInputAsync(string userInput, string userName);
         Task<ChatHistory?> GetChatHistoryAsync(string userName);
         Task<string> SaveChatHistoryAsync(string userName, ChatHistory history);
     }

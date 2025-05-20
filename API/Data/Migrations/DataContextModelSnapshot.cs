@@ -197,6 +197,37 @@ namespace API.Data.Migrations
                     b.ToTable("Contacts");
                 });
 
+            modelBuilder.Entity("API.Entities.Reminder", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AppUserId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsTriggered")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("ReminderTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Task")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AppUserId");
+
+                    b.ToTable("reminders");
+                });
+
             modelBuilder.Entity("API.Entities.UserChatHistory", b =>
                 {
                     b.Property<int>("Id")
@@ -333,12 +364,23 @@ namespace API.Data.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("API.Entities.Reminder", b =>
+                {
+                    b.HasOne("API.Entities.AppUser", "AppUser")
+                        .WithMany("Reminders")
+                        .HasForeignKey("AppUserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("AppUser");
+                });
+
             modelBuilder.Entity("API.Entities.UserChatHistory", b =>
                 {
                     b.HasOne("API.Entities.AppUser", "AppUser")
                         .WithMany("ChatHistories")
                         .HasForeignKey("AppUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("AppUser");
@@ -388,6 +430,8 @@ namespace API.Data.Migrations
             modelBuilder.Entity("API.Entities.AppUser", b =>
                 {
                     b.Navigation("ChatHistories");
+
+                    b.Navigation("Reminders");
 
                     b.Navigation("UserRoles");
                 });

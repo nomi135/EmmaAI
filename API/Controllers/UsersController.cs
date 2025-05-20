@@ -8,13 +8,13 @@ using Microsoft.AspNetCore.Mvc;
 namespace API.Controllers
 {
     [Authorize]
-    public class UsersController(IUserRepository userRepository, IMapper mapper) : BaseApiController
+    public class UsersController(IUnitOfWork unitOfWork, IMapper mapper) : BaseApiController
     {
 
         [HttpGet("{username}")]
         public async Task<ActionResult<MemberDto>> GetUser(string username)
         {
-            var user = await userRepository.GetMemberAsync(username);
+            var user = await unitOfWork.UserRepository.GetMemberAsync(username);
 
            if (user == null) return NotFound();
 
@@ -26,7 +26,7 @@ namespace API.Controllers
         public async Task<ActionResult> UpdateUser(MemberUpdateDto memberUpdateDto)
         {
 
-            var user = await userRepository.GetUserByUsernameAsync(User.GetUsername());
+            var user = await unitOfWork.UserRepository.GetUserByUsernameAsync(User.GetUsername());
             
             if (user == null) return BadRequest("Could not find user");
 
@@ -36,7 +36,7 @@ namespace API.Controllers
 
             mapper.Map(memberUpdateDto, user);
 
-            if (await userRepository.SaveAllAsync()) return NoContent();
+            if (await unitOfWork.Complete()) return NoContent();
             
             return BadRequest("Failed to update the user");
         }

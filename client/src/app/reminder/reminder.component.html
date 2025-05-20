@@ -1,0 +1,30 @@
+<ngx-spinner type="line-scale-party" [fullScreen]="true"></ngx-spinner>
+
+@if(reminders) {
+    <div class="d-flex flex-column justify-content-center align-items-center hero">
+        <div class="container row section-title col-md-12" data-aos="fade-up">
+            <h2>Upcoming Reminders</h2>
+            @if(reminders.length > 0){
+                <table class="table table-bordered table-striped">
+                    <thead>
+                    <tr>
+                        <th>Task</th>
+                        <th>Date Time</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (reminder of reminders; track $index) {
+                        <tr>
+                            <td>{{reminder.task}}</td>
+                            <td>{{reminder.reminderTime | date:'dd/MM/yyyy hh:mm a'}}</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            }
+            @else {
+                <p>No active reminder found</p>    
+            }
+        </div>
+    </div>
+}

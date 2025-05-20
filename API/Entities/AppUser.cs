@@ -16,5 +16,6 @@ namespace API.Entities
         public string? TimeZone { get; set; }
         public ICollection<AppUserRole> UserRoles { get; set; } = [];
         public List<UserChatHistory> ChatHistories { get; set; } = [];
+        public List<Reminder> Reminders { get; set; } = [];
     }
 }

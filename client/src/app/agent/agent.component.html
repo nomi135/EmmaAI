@@ -5,13 +5,17 @@
   </div><!-- End Section Title -->
   <div class="chat-wrapper">
     <form id="chatForm" #chatForm="ngForm" (ngSubmit)="sendMessage()" class="php-email-form" autocomplete="off">
-       <!-- Loop through chatHistory -->
-       <div *ngFor="let message of chatHistory()" #messageDiv class="message" [ngClass]="{'user': message.chatRole === 'user', 'bot': message.chatRole === 'assistant'}">
-        <div class="bubble" 
-          [innerHTML]="formatMessage(message.message)">
-        </div>
-      </div>
-    
+      <div #scrollMe
+             style="overflow: scroll; max-height: 500px; scroll-behavior: smooth;" >
+             <!-- Loop through chatHistory -->
+            <div *ngFor="let message of chatHistory()" 
+                  class="message" [ngClass]="{'user': message.chatRole === 'user', 'bot': message.chatRole === 'assistant'}">
+              <div class="bubble" 
+                [innerHTML]="formatMessage(message.message)">
+              </div>
+            </div>
+      </div> 
+
       <div class="chat-input-area">
         <div class="input-container">
           <div class="extra-buttons">

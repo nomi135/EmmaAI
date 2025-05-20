@@ -1,6 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { LayoutComponent } from './layout/layout.component';
-import { Title } from '@angular/platform-browser';
+import { AccountService } from './_services/account.service';
 
 @Component({
   selector: 'app-root',
@@ -9,6 +9,17 @@ import { Title } from '@angular/platform-browser';
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
+  private accountService = inject(AccountService);
+
+  ngOnInit(): void {
+    this.setCurrentUser();
+  }
   
+  setCurrentUser(){
+    const userString = localStorage.getItem('user');
+    if(!userString) return;
+    const user = JSON.parse(userString);
+    this.accountService.setCurrentUser(user);
+  }
 }

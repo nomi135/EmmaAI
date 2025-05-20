@@ -10,6 +10,7 @@ namespace API.Data
     {
         public DbSet<Contact> Contacts { get; set; }
         public DbSet<UserChatHistory> ChatHistories { get; set; }
+        public DbSet<Reminder> reminders { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -31,6 +32,12 @@ namespace API.Data
                 .HasOne(ch => ch.AppUser)   // ChatHistory has one AppUser
                 .WithMany(u => u.ChatHistories) // AppUser has many ChatHistories (you need to add this collection in AppUser class)
                 .HasForeignKey(ch => ch.AppUserId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            builder.Entity<Reminder>()
+                .HasOne(r => r.AppUser)   // Reminder has one AppUser
+                .WithMany(u => u.Reminders) // AppUser has many Reminders (you need to add this collection in AppUser class)
+                .HasForeignKey(r => r.AppUserId)
                 .OnDelete(DeleteBehavior.NoAction);
         }
     }

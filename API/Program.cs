@@ -1,10 +1,12 @@
 using API.Data;
 using API.Entities;
 using API.Extensions;
+using API.HangFire;
 using API.Middleware;
+using API.SignalR;
+using Hangfire;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.SemanticKernel;
 
 namespace API
 {
@@ -30,7 +32,7 @@ namespace API
 
             //Configure the HTTP request pipleline
             app.UseMiddleware<ExceptionMiddleware>();
-            app.UseCors(x => x.AllowAnyHeader().AllowAnyMethod()
+            app.UseCors(x => x.AllowAnyHeader().AllowAnyMethod().AllowCredentials()
                .WithOrigins("http://localhost:4200", "https://localhost:4200"));
 
             app.UseAuthentication();
@@ -39,8 +41,14 @@ namespace API
             app.UseStaticFiles();
             app.MapControllers();
             app.MapFallbackToController("Index", "Fallback");
+            app.MapHub<PresenceHub>("hubs/presence");
 
             using var scope = app.Services.CreateScope();
+
+            var recurringJobManager = scope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
+
+            recurringJobManager.AddOrUpdate<ReminderJobService>("CheckReminderEvery1Minute", x => x.CheckAndPushReminders(), Cron.Minutely());
+
             var services = scope.ServiceProvider;
             try
             {
