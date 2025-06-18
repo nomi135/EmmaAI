@@ -11,6 +11,6 @@ export class ContactService {
   private http = inject(HttpClient);
 
   sendMessage(contact: Contact) {
-    return this.http.post<Contact>(this.baseUrl + 'contact', contact)
+    return this.http.post<Contact>(this.baseUrl + 'contact', contact);
   }
 }

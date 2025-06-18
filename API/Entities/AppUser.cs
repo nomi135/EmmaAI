@@ -17,5 +17,6 @@ namespace API.Entities
         public ICollection<AppUserRole> UserRoles { get; set; } = [];
         public List<UserChatHistory> ChatHistories { get; set; } = [];
         public List<Reminder> Reminders { get; set; } = [];
+        public List<SurveyFormData> SurveyFormData { get; set; } = [];
     }
 }

@@ -225,7 +225,127 @@ namespace API.Data.Migrations
 
                     b.HasIndex("AppUserId");
 
-                    b.ToTable("reminders");
+                    b.ToTable("Reminders");
+                });
+
+            modelBuilder.Entity("API.Entities.SurveyForm", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ImagePath")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Path")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("SurveyForms");
+                });
+
+            modelBuilder.Entity("API.Entities.SurveyFormData", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Path")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("SurveyFormDetailId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SurveyFormDetailId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("SurveyFormData");
+                });
+
+            modelBuilder.Entity("API.Entities.SurveyFormDetail", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("FontName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FontSize")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Height")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Label")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Left")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PageNo")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("SurveyFormId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Top")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Width")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SurveyFormId");
+
+                    b.ToTable("SurveyFormDetail");
                 });
 
             modelBuilder.Entity("API.Entities.UserChatHistory", b =>
@@ -375,6 +495,36 @@ namespace API.Data.Migrations
                     b.Navigation("AppUser");
                 });
 
+            modelBuilder.Entity("API.Entities.SurveyFormData", b =>
+                {
+                    b.HasOne("API.Entities.SurveyFormDetail", "SurveyFormDetail")
+                        .WithMany("SurveyFormData")
+                        .HasForeignKey("SurveyFormDetailId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("API.Entities.AppUser", "User")
+                        .WithMany("SurveyFormData")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("SurveyFormDetail");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("API.Entities.SurveyFormDetail", b =>
+                {
+                    b.HasOne("API.Entities.SurveyForm", "SurveyForm")
+                        .WithMany("SurveyFormDetails")
+                        .HasForeignKey("SurveyFormId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("SurveyForm");
+                });
+
             modelBuilder.Entity("API.Entities.UserChatHistory", b =>
                 {
                     b.HasOne("API.Entities.AppUser", "AppUser")
@@ -433,7 +583,19 @@ namespace API.Data.Migrations
 
                     b.Navigation("Reminders");
 
+                    b.Navigation("SurveyFormData");
+
                     b.Navigation("UserRoles");
+                });
+
+            modelBuilder.Entity("API.Entities.SurveyForm", b =>
+                {
+                    b.Navigation("SurveyFormDetails");
+                });
+
+            modelBuilder.Entity("API.Entities.SurveyFormDetail", b =>
+                {
+                    b.Navigation("SurveyFormData");
                 });
 #pragma warning restore 612, 618
         }

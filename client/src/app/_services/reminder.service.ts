@@ -11,7 +11,7 @@ export class ReminderService {
   private http = inject(HttpClient);
     
     getActiveReminders(username: string) {
-      return this.http.get<Reminder[]>(this.baseUrl + 'reminder/' + username)
+      return this.http.get<Reminder[]>(this.baseUrl + 'reminder/' + username);
     }
     
 }

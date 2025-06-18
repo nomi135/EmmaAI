@@ -2,17 +2,12 @@
 using API.Entities;
 using API.Extensions;
 using API.Interfaces;
-using API.Middleware;
-using API.Services;
 using AutoMapper;
-using Azure;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.AzureOpenAI;
-using System.Text.Json;
 
 namespace API.Controllers
 {
@@ -94,7 +89,7 @@ namespace API.Controllers
 
             if (file.Length > 5 * 1024 * 1024)
             {
-                return BadRequest("document size exceeds the 5 MB limit.");
+                return BadRequest("Document size exceeds the 5 MB limit.");
             }
 
             var result = await documentService.SaveDocumentAsync(file, User.GetUsername());

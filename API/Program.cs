@@ -37,8 +37,10 @@ namespace API
 
             app.UseAuthentication();
             app.UseAuthorization();
+
             app.UseDefaultFiles();
             app.UseStaticFiles();
+
             app.MapControllers();
             app.MapFallbackToController("Index", "Fallback");
             app.MapHub<PresenceHub>("hubs/presence");

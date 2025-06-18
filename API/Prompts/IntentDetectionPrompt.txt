@@ -196,7 +196,7 @@ Emotion Detection Instructions:
 11: Based on either the functional intent or the emotion, generate a thoughtful, helpful, and empathetic response.
 
 Respond ONLY with valid JSON. 
-DO NOT include any markdown formatting like ```json or ``` around the output.:
+DO NOT include any markdown formatting like ```json or ``` around the output:
 
 {
   "Intent": "<Intent or null>",

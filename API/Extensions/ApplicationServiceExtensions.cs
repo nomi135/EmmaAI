@@ -5,11 +5,13 @@ using API.Interfaces;
 using API.Services;
 using API.SignalR;
 using Hangfire;
-using Hangfire.SqlServer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Connectors.AzureOpenAI;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
+using Polly.CircuitBreaker;
+using Polly.Retry;
+using Polly;
 
 namespace API.Extensions
 {
@@ -44,6 +46,8 @@ namespace API.Extensions
             services.AddScoped<IReminderService, ReminderService>();
             services.AddScoped<IContactRepository, ContactRepository>();
             services.AddScoped<IUserChatHistoryRepository, UserChatHistoryRepository>();
+            services.AddScoped<ISurveyFormRepository, SurveyFormRepository>();
+            services.AddScoped<ISurveyFormDataRepository, SurveyFormDataRepository>();
             services.AddScoped<IReminderRepository, ReminderRepository>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddHangfire(cnfg => 
@@ -57,6 +61,25 @@ namespace API.Extensions
             services.AddScoped<ReminderJobService>();
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
+            // register resilience timeout
+            services.AddHttpClient("AzureOpenAI")
+                .AddStandardResilienceHandler(options =>
+                {
+                    // timeout for each individual attempt (before retry)
+                    options.AttemptTimeout.Timeout = TimeSpan.FromSeconds(30);
+
+                    // Retry settings
+                    options.Retry.MaxRetryAttempts = 3;
+                    options.Retry.BackoffType = DelayBackoffType.Exponential;
+                    options.Retry.Delay = TimeSpan.FromSeconds(2);
+
+                    // Circuit Breaker
+                    options.CircuitBreaker.FailureRatio = 0.5;
+                    options.CircuitBreaker.MinimumThroughput = 3;
+                    options.CircuitBreaker.SamplingDuration = TimeSpan.FromSeconds(60);
+                    options.CircuitBreaker.BreakDuration = TimeSpan.FromSeconds(10);
+                });
+
             //AI agent services
             services.AddScoped<Kernel>(sp =>
             {
@@ -67,15 +90,18 @@ namespace API.Extensions
                 var model = azureOpenAIConfig["Model"] ?? throw new Exception("AzureOpenAI model not found");
                 var textEmbeddingDeploymentName = azureOpenAIConfig["TextEmbeddingDeploymentName"] ?? throw new Exception("AzureOpenAI text embedding deployment name not found");
                 var textEmbeddingModel = azureOpenAIConfig["TextEmbeddingModel"] ?? throw new Exception("AzureOpenAI text embedding model not found");
+                var httpClientFactory = sp.GetRequiredService<IHttpClientFactory>();
+                var httpClient = httpClientFactory.CreateClient("AzureOpenAI"); // uses resilience config
 #pragma warning disable SKEXP0010 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
                 var kernel = Kernel.CreateBuilder()
-                    .AddAzureOpenAIChatCompletion(deploymentName, endPoint, ApiKey, modelId: model)
-                    .AddAzureOpenAITextEmbeddingGeneration(textEmbeddingDeploymentName, endPoint, ApiKey, textEmbeddingDeploymentName)
+                    .AddAzureOpenAIChatCompletion(deploymentName, endPoint, ApiKey, modelId: model, httpClient: httpClient)
+                    .AddAzureOpenAITextEmbeddingGeneration(textEmbeddingDeploymentName, endPoint, ApiKey, textEmbeddingDeploymentName, httpClient: httpClient)
                     .Build();
 #pragma warning restore SKEXP0010 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 
                 return kernel;
             });
+
 
             // Register AzureOpenAIPromptExecutionSettings
             services.AddSingleton(new AzureOpenAIPromptExecutionSettings

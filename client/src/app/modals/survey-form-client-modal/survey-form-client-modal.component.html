@@ -1,0 +1,90 @@
+<ngx-spinner name="spinner-survey-form-data" type="line-scale-party"></ngx-spinner>
+
+<div class="modal-header">
+    <h4 class="modal-title pull-left">{{title}}</h4>
+    <button type="button" class="btn-close close pull-right" (click)="bsModalRef.hide()">
+        <span class="visually-hidden">&times;</span>
+    </button>
+</div>
+<div class="modal-body">
+    <div class="row col-sm-12" style="max-height: calc(100vh - 200px); overflow-y: auto;">
+        @if (surveyForm.surveyFormDetails.length > 0) {
+            <h4 class="mt-2">Please provide data for following input fields to fill survey form</h4>
+            <hr>
+            <form id="surveyFormData" (ngSubmit)="submitSurveyFormData()" 
+                class="php-email-form" autocomplete="off">
+            </form>
+            @for (detail of surveyFormDetails; track detail.id) {
+                <div class="col-sm-6 mt-1">
+                    <div class="input-group">
+                        <label for="{{detail.key}}" class="col-md-6">{{detail.label}}</label>
+                        <div class="col-md-6">
+                            @if (detail.type === "text") {
+                                <input type="text"
+                                    [(ngModel)]="detail.value" 
+                                    class="form-control"
+                                    [name]="detail.key">
+                            }
+                            @else if (detail.type === "date") {
+                                <input type="date"
+                                    [(ngModel)]="detail.value" 
+                                    class="form-control date"
+                                    [name]="detail.key">
+                            }
+                            @else if (detail.type === "textarea") {
+                                <textarea
+                                    [(ngModel)]="detail.value" 
+                                    class="form-control"
+                                    [name]="detail.key">
+                                </textarea>
+                            }
+                            @else if (detail.type === "checkbox" || detail.type === "radio") {
+                                <input [type]="detail.type"
+                                    [(ngModel)]="detail.value"
+                                    [checked]="detail.value === 'checked'"
+                                    (change)="checkValue($event, detail)"
+                                    [name]="detail.key" />
+                            }
+                            @else if (detail.type === "select") {
+                                <select 
+                                    class="form-control"
+                                    [(ngModel)]="detail.value"
+                                    [name]="detail.key">
+                                <option value="{{detail.key}}">{{detail.label}}</option>
+                                </select>
+                            }
+                            @else {
+                                <input type="text"
+                                    [(ngModel)]="detail.value" 
+                                    class="form-control"
+                                    [name]="detail.key">
+                            }
+                        </div>
+                    </div>
+                    
+                </div>
+            }
+        }
+    </div>
+</div>
+<div class="modal-footer">
+    <div class="input-group col-md-12">
+        <select name="ddlPage" class="form-control col-md-8" [(ngModel)]="selectedPagePath">
+            @for (item of imagePathList; track $index) {
+                <option value="{{item}}">Page {{$index+1}}</option>
+            }
+        </select>
+         &nbsp;
+        <button
+            type="button"
+            class="btn btn-info btn-sm col-md-2"
+            (click)="previewChanges()"
+        >Preview Changes</button>
+        &nbsp;
+        <button 
+            form="surveyFormData" 
+            type="submit"
+            class="btn btn-success btn-sm col-md-2" 
+        >Submit</button>
+    </div>
+</div>

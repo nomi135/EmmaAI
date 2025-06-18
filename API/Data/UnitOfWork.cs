@@ -2,8 +2,8 @@
 
 namespace API.Data
 {
-    public class UnitOfWork(DataContext context, IUserRepository userRepository, IContactRepository contactRepository, 
-                            IUserChatHistoryRepository userChatHistoryRepository, IReminderRepository reminderRepository) : IUnitOfWork
+    public class UnitOfWork(DataContext context, IUserRepository userRepository, IContactRepository contactRepository, IUserChatHistoryRepository userChatHistoryRepository, 
+                           IReminderRepository reminderRepository, ISurveyFormRepository surveyFormRepository, ISurveyFormDataRepository surveyFormDataRepository) : IUnitOfWork
     {
         public IUserRepository UserRepository => userRepository;
 
@@ -12,6 +12,10 @@ namespace API.Data
         public IUserChatHistoryRepository UserChatHistoryRepository => userChatHistoryRepository;
 
         public IReminderRepository ReminderRepository => reminderRepository;
+
+        public ISurveyFormRepository SurveyFormRepository => surveyFormRepository;
+
+        public ISurveyFormDataRepository SurveyFormDataRepository => surveyFormDataRepository;
 
         public async Task<bool> Complete()
         {

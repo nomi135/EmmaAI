@@ -1,0 +1,143 @@
+<ngx-spinner name="spinner-survey-form-detail" type="line-scale-party"></ngx-spinner>
+
+<div class="modal-header">
+    <h4 class="modal-title pull-left">{{title}}</h4>
+    <button type="button" class="btn-close close pull-right" (click)="bsModalRef.hide()">
+        <span class="visually-hidden">&times;</span>
+    </button>
+</div>
+<div class="modal-body">
+    <div class="row col-sm-12">
+        <div class="input-group mt-1" [hidden]="surveyForm.id > 0">
+            <label class="col-md-3">Upload Template</label>
+            <div class="col-md-9">
+                <button type="button"
+                    class="btn btn-light btn-icon"
+                    title="Upload survey form"
+                    (click)="fileInput.click()">
+                    <i class="bi bi-upload"></i>
+                </button>
+                <input type="file"
+                    #fileInput
+                    (change)="onFileSelected($event)"
+                    style="display: none;"
+                    accept=".pdf" />
+                &nbsp;
+                <button type="button"
+                    [hidden]="file?.type!='application/pdf' || surveyForm.id > 0"
+                    class="btn btn-light btn-icon"
+                    title="extract form fields again"
+                    (click)="extractSurveyFormData()">
+                    <i class="bi bi-repeat"></i>
+                </button>
+                </div>
+            </div>
+            <div *ngIf="file?.type=='application/pdf' || surveyForm.id > 0">
+                <div class="input-group mt-1">
+                    <label for="title" class="col-md-3">Form Title</label>
+                    <div class="col-md-6">
+                        <input type="text"
+                            [(ngModel)]="surveyForm.title"
+                            class="form-control"
+                            name="title">
+                    </div>
+                    &nbsp;
+                    <button type="button" 
+                        class="btn btn-secondary btn-icon" 
+                        title="add new field"
+                        (click)="addSurveyFormField()">
+                        <i class="bi bi-plus"></i>
+                    </button>
+                </div>
+            </div>
+            @if (surveyForm.surveyFormDetails.length > 0) {
+                <h4 class="mt-5">Extracted Form Fields</h4>
+                <div class="mt-2 table-responsive" style="max-height: calc(100vh - 300px); overflow-y: auto;">
+                    <table class="table table-striped table-bordered">
+                        <thead>
+                            <tr>
+                                <th class="col-sm-1">Key</th>
+                                <th class="col-sm-2">Label</th>
+                                <th class="col-sm-1">Type</th>
+                                <th class="col-sm-1">Page No</th>
+                                <th class="col-sm-1">Left</th>
+                                <th class="col-sm-1">Top</th>
+                                <th class="col-sm-1">Width</th>
+                                <th class="col-sm-1">Height</th>
+                                <th class="col-sm-1">Font Family</th>
+                                <th class="col-sm-1">Font Size</th>
+                                <th class="col-sm-1"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (detail of surveyForm.surveyFormDetails; track $index) {
+                                <tr>
+                                    <td><input 
+                                        type="text" 
+                                        class="form-control" 
+                                        style="width: auto;"
+                                        [(ngModel)] = "detail.key" /></td>
+                                    <td><input 
+                                        type="text" 
+                                        class="form-control" 
+                                        style="width: auto;"
+                                        [(ngModel)] = "detail.label" /></td>
+                                    <td>{{detail.type}}</td>
+                                    <td><input 
+                                        type="text" 
+                                        class="form-control"
+                                        [(ngModel)] = "detail.pageNo" /></td>
+                                    <td><input 
+                                        type="text" 
+                                        class="form-control" 
+                                        style="width: 60px;"
+                                        [(ngModel)] = "detail.left" /></td>
+                                    <td><input 
+                                        type="text" 
+                                        class="form-control" 
+                                        style="width: 60px;"
+                                        [(ngModel)] = "detail.top" /></td>
+                                    <td><input 
+                                        type="text" 
+                                        class="form-control" 
+                                        style="width: 60px;"
+                                        [(ngModel)] = "detail.width" /></td>
+                                    <td><input 
+                                        type="text" 
+                                        class="form-control" 
+                                        style="width: 60px;"
+                                        [(ngModel)] = "detail.height" /></td>
+                                    <td><input 
+                                        type="text" 
+                                        class="form-control" 
+                                        style="width: auto;"
+                                        [(ngModel)] = "detail.fontName" /></td>
+                                    <td><input 
+                                        type="text" 
+                                        class="form-control" 
+                                        style="width: 60px;"
+                                        [(ngModel)] = "detail.fontSize" /></td>
+                                    <td>
+                                        <button 
+                                            type="button" 
+                                            (click)="removeSurveyFormDetail(detail.id)" 
+                                            class="btn btn-sm btn-danger">
+                                            Remove
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+</div>
+<div class="modal-footer">
+    <button 
+        [disabled]="surveyForm.surveyFormDetails.length === 0" 
+        type="button" 
+        class="btn btn-success" 
+        (click)="submitForm()"
+    >Submit</button>
+</div>

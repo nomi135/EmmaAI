@@ -13,14 +13,14 @@ namespace API.Data
     {
         public void AddReminder(Reminder reminder)
         {
-            context.reminders.Add(reminder);
+            context.Reminders.Add(reminder);
         }
 
         public async Task<List<ReminderDto>> GetUserRemindersAsync(string userName, string dateNow)
         {
             DateTime dateTime = DateTime.ParseExact(dateNow, "dd/MM/yyyy hh:mm tt", CultureInfo.InvariantCulture);
 
-            return await context.reminders
+            return await context.Reminders
                 .Where(r => r.AppUser.UserName == userName && !r.IsTriggered && r.ReminderTime > dateTime)
                 .OrderBy(x => x.ReminderTime)
                 .ProjectTo<ReminderDto>(mapper.ConfigurationProvider)
@@ -29,7 +29,7 @@ namespace API.Data
 
         public async Task<Reminder?> GetReminderAsync(int Id)
         {
-            return await context.reminders
+            return await context.Reminders
                 .Where(r => r.Id == Id)
                 .FirstOrDefaultAsync();
         }
@@ -38,7 +38,7 @@ namespace API.Data
         {
             DateTime dateTime = DateTime.ParseExact(dateNow, "dd/MM/yyyy hh:mm tt", CultureInfo.InvariantCulture);
 
-            var reminders = await context.reminders
+            var reminders = await context.Reminders
                 .Where(r => r.AppUser.UserName == userName && !r.IsTriggered && r.ReminderTime == dateTime)
                 .OrderBy(x => x.ReminderTime)
                 .ProjectTo<ReminderDto>(mapper.ConfigurationProvider)

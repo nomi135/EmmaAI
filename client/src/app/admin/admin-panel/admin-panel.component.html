@@ -1,0 +1,22 @@
+<div class="d-flex flex-column justify-content-center align-items-center hero">
+    <div class="container row section-title col-md-12" data-aos="fade-up">
+        <h2>Admin panel</h2>
+        <div class="tab-panel">
+            <tabset class="member-tabset" #adminTabs>
+                <tab heading="User Management" (selectTab)="onTabActivated($event)">
+                    <div class="container">
+                        <app-user-management></app-user-management>
+                    </div>
+                </tab>
+                <tab heading="Survey Forms" (selectTab)="onTabActivated($event)">
+                    <div class="container">
+                        <!-- Load only when active for first time -->
+                        <ng-container *ngIf="activeTab?.heading === 'Survey Forms'">
+                            <app-survey-form-management></app-survey-form-management>
+                        </ng-container>
+                    </div>
+                </tab>
+            </tabset>
+        </div>
+    </div>
+</div>

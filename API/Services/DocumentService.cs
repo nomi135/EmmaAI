@@ -1,13 +1,15 @@
 ﻿using API.Interfaces;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Embeddings;
-using UglyToad.PdfPig;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.ComponentModel;
 using Microsoft.Extensions.Caching.Memory;
 using API.DTOs;
 using DocumentFormat.OpenXml.Packaging;
+using iText.Kernel.Pdf.Canvas.Parser.Listener;
+using iText.Kernel.Pdf.Canvas.Parser;
+using iText.Kernel.Pdf;
 
 namespace API.Services
 {
@@ -89,10 +91,22 @@ namespace API.Services
         private string ExtractTextFromPdf(byte[] bytes)
         {
             using var stream = new MemoryStream(bytes);
-            using var doc = PdfDocument.Open(stream);
             var sb = new StringBuilder();
-            foreach (var page in doc.GetPages())
-                sb.AppendLine(page.Text);
+            using (PdfReader reader = new PdfReader(stream))
+            {
+                using (PdfDocument document = new PdfDocument(reader))
+                {
+                    for (int page = 1; page <= document.GetNumberOfPages(); page++)
+                    {
+                        var strategy = new LocationTextExtractionStrategy(); // preserves layout
+                        string pageText = PdfTextExtractor.GetTextFromPage(document.GetPage(page), strategy);
+
+                        sb.AppendLine($"--- Page {page} ---");
+                        sb.AppendLine(pageText);
+                        sb.AppendLine();
+                    }
+                }
+            }
             return sb.ToString();
         }
         private string ExtractTextFromWord(byte[] bytes)

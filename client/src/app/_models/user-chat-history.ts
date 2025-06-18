@@ -1,5 +1,5 @@
 export interface UserChatHistory {
-    chatRole: string
-    message: string
-    messageSent: Date
+    chatRole: string;
+    message: string;
+    messageSent: Date;
 }

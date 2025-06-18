@@ -1,0 +1,39 @@
+<ngx-spinner name="spinner-survey-form" type="line-scale-party" [fullScreen]="true"></ngx-spinner>
+
+<div class="col-sm-2 mt-2">
+<button (click)="uploadNewForm()" class="btn btn-sm btn-secondary"><i class="bi bi-plus-lg"></i> Upload new form</button>
+</div>
+@if(surveyForms !==null && surveyForms.length > 0) {
+    <div class="row mt-2">
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th class="col-sm-2">Form Title</th>
+                    <th class="col-sm-2">Date Added</th>
+                    <th class="col-sm-4">Path</th>
+                    <th class="col-sm-6"></th>
+                </tr>
+            </thead>
+            <tbody>
+                @for (surveyForm of surveyForms; track surveyForm.title) {
+                    <tr>
+                        <td>{{surveyForm.title}}</td>
+                        <td>{{surveyForm.created | date:'dd/MM/yyyy hh:mm a'}}</td>
+                        <td>{{surveyForm.path}}</td>
+                        <td>
+                            <button (click)="openCompletedFormModal(surveyForm.id, surveyForm.title)" class="btn btn-success">
+                                <i class="bi bi-file-check-fill"></i> Completed Forms</button> |
+                            <button (click)="openSurveyFormModal(surveyForm)" class="btn btn-primary">
+                                <i class="bi bi-pencil-square"></i> Edit</button> | 
+                            <button (click)="deleteSurveyForm(surveyForm.id)" class="btn btn-danger">
+                                <i class="bi bi-trash"></i> Delete</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+@else {
+    <p>No survey form found</p>
+}

@@ -3,11 +3,12 @@ import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router
 import { AccountService } from '../_services/account.service';
 import { BsDropdownModule } from 'ngx-bootstrap/dropdown';
 import { NgIf } from '@angular/common';
+import { HasRoleDirective } from '../_directives/has-role.directive';
 
 @Component({
   selector: 'app-layout',
   standalone: true,
-  imports: [RouterOutlet, BsDropdownModule, RouterLink, NgIf],
+  imports: [RouterOutlet, BsDropdownModule, RouterLink, NgIf, HasRoleDirective],
   templateUrl: './layout.component.html',
   styleUrl: './layout.component.css'
 })

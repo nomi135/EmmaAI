@@ -61,7 +61,7 @@ export class MemberEditComponent implements OnInit {
     if(!user) return;
     this.memberService.getMember(user.userName).subscribe({
       next: member => this.member = member
-    })
+    });
   }
 
   updateMember() {
@@ -70,7 +70,7 @@ export class MemberEditComponent implements OnInit {
         this.toastr.success('Profile updated successfully');
       },
       error: error => this.validateErrors = error
-    })
+    });
   }
 
 }

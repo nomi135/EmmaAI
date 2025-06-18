@@ -1,0 +1,41 @@
+<ngx-spinner name="spinner-survey-completed-form-data" type="line-scale-party"></ngx-spinner>
+
+<div class="modal-header">
+    <h4 class="modal-title pull-left">{{title}}</h4>
+    <button type="button" class="btn-close close pull-right" (click)="bsModalRef.hide()">
+        <span class="visually-hidden">&times;</span>
+    </button>
+</div>
+<div class="modal-body">
+    <div class="row col-sm-12">
+        @if (surveyFormData.length > 0) {
+            <div class="mt-2 table-responsive" style="max-height: calc(100vh - 300px); overflow-y: auto;">
+                <table class="table table-striped table-bordered">
+                    <thead>
+                        <tr>
+                            <th class="col-sm-1">User</th>
+                            <th class="col-sm-2">Completed On</th>
+                            <th class="col-sm-1">Download</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (detail of surveyFormData; track $index) {
+                            <tr>
+                               <td>{{detail.userName}}</td>
+                               <td>{{detail.dateCreated | date:'dd/MM/yyyy hh:mm a'}}</td>
+                               <td><a href="{{detail.path}}" target="_blank" class="btn btn-sm btn-danger" title="download">
+                                <i class="bi bi-download"></i></a></td> 
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        @else {
+            <p>No Use has completed this survey form yet</p>
+        }
+    </div>
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-default pull-right" (click)="bsModalRef.hide()">Close</button>
+</div>

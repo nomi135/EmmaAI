@@ -29,7 +29,7 @@ export class AccountService {
           this.setCurrentUser(user);
         }
       })
-    )
+    );
   }
 
   register(model: any){
@@ -40,7 +40,7 @@ export class AccountService {
         }
         return user;
       })
-    )
+    );
   }
 
   setCurrentUser(user: User) {

@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using System.Reflection.Emit;
 
 namespace API.Data
 {
@@ -10,7 +11,9 @@ namespace API.Data
     {
         public DbSet<Contact> Contacts { get; set; }
         public DbSet<UserChatHistory> ChatHistories { get; set; }
-        public DbSet<Reminder> reminders { get; set; }
+        public DbSet<Reminder> Reminders { get; set; }
+        public DbSet<SurveyForm> SurveyForms { get; set; }
+        public DbSet<SurveyFormData> SurveyFormData { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -39,6 +42,24 @@ namespace API.Data
                 .WithMany(u => u.Reminders) // AppUser has many Reminders (you need to add this collection in AppUser class)
                 .HasForeignKey(r => r.AppUserId)
                 .OnDelete(DeleteBehavior.NoAction);
+
+            builder.Entity<SurveyForm>()
+                .HasMany(sd => sd.SurveyFormDetails) // SurveyForm has many SurveyFormDetails
+                .WithOne(s => s.SurveyForm) // SurveyFormDetails has one SurveyForm
+                .HasForeignKey(sd => sd.SurveyFormId)
+                .OnDelete(DeleteBehavior.Cascade); // delete SurveyFormDetails also
+
+            builder.Entity<SurveyFormData>()
+                .HasOne(d => d.User)
+                .WithMany(u => u.SurveyFormData) // AppUser has many SurveyFormData
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<SurveyFormData>()
+                .HasOne(d => d.SurveyFormDetail)
+                .WithMany(f => f.SurveyFormData) // SurveyFormDetail has many SurveyFormData
+                .HasForeignKey(d => d.SurveyFormDetailId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

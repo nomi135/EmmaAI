@@ -19,6 +19,10 @@
                 @if (accountService.currentUser()) {
                     <li><a routerLink="/agent" routerLinkActive="active">Agent</a></li>
                     <li><a routerLink="/reminder" routerLinkActive="active">Reminder</a></li>
+                    <li><a routerLink="/survey" routerLinkActive="active">Survey Forms</a></li>
+                    <li *appHasRole="['Admin']" class="nav-item">
+                        <a routerLink="/admin" routerLinkActive="active" class="nav-link">Admin</a>
+                    </li>
                     <li>
                         <div dropdown class="dropdown">
                             <button dropdownToggle class="btn link-dropdown dropdown-toggle" type="button">
@@ -75,6 +79,10 @@
                     @if (accountService.currentUser()) {
                         <li><a routerLink="/agent" routerLinkActive="active">Agent</a></li>
                         <li><a routerLink="/reminder" routerLinkActive="active">Reminder</a></li>
+                        <li><a routerLink="/survey" routerLinkActive="active">Survey Forms</a></li>
+                        <li *appHasRole="['Admin']" class="nav-item">
+                            <a routerLink="/admin" routerLinkActive="active" class="nav-link">Admin</a>
+                        </li>
                     }  
                 </ul>
             </div>

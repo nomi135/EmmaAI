@@ -13,16 +13,16 @@ export class AgentService {
   private http = inject(HttpClient);
   
   loadMessages() {
-    return this.http.get<UserChatHistory[]>(this.baseUrl + 'aiagent')
+    return this.http.get<UserChatHistory[]>(this.baseUrl + 'aiagent');
   }
   
   Chat(message: UserMessage) {
-    return this.http.post<AgentMessage>(this.baseUrl + 'aiagent/chat', message)
+    return this.http.post<AgentMessage>(this.baseUrl + 'aiagent/chat', message);
   }
 
   uploadDocument(file: File) {
     const formData = new FormData();
     formData.append('file', file);
-    return this.http.post<AgentMessage>(this.baseUrl + 'aiagent/uploaddocument', formData)
+    return this.http.post<AgentMessage>(this.baseUrl + 'aiagent/uploaddocument', formData);
   }
 }

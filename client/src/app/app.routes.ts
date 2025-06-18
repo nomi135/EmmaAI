@@ -9,6 +9,9 @@ import { MemberEditComponent } from './members/member-edit/member-edit.component
 import { preventUnsavedChangesGuard } from './_guards/prevent-unsaved-changes.guard';
 import { AgentComponent } from './agent/agent.component';
 import { ReminderComponent } from './reminder/reminder.component';
+import { SurveyComponent } from './survey/survey.component';
+import { adminGuard } from './_guards/admin.guard';
+import { AdminPanelComponent } from './admin/admin-panel/admin-panel.component';
 
 export const routes: Routes = [
     {path: '', component: HomeComponent},
@@ -20,7 +23,8 @@ export const routes: Routes = [
              {path: 'member/edit', component: MemberEditComponent, canDeactivate: [preventUnsavedChangesGuard]},
              {path: 'agent', component: AgentComponent},
              {path: 'reminder', component: ReminderComponent},
-            // {path: 'admin', component: AdminPanelComponent, canActivate: [adminGuard]}
+             {path: 'survey', component: SurveyComponent},
+             {path: 'admin', component: AdminPanelComponent, canActivate: [adminGuard]}
         ]
     },
     {path: 'register', component: RegisterComponent},
