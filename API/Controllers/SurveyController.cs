@@ -9,7 +9,9 @@ using iText.Kernel.Pdf;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using iText.Kernel.Pdf.Canvas.Parser;
-using iText.Kernel.Pdf.Canvas.Parser.Listener;
+using API.Helpers;
+using iText.Kernel.Pdf.Canvas;
+using iText.Kernel.Font;
 
 namespace API.Controllers
 {
@@ -23,6 +25,36 @@ namespace API.Controllers
 
             if (SurveyForms == null || SurveyForms.Count == 0)
                 return Ok();
+
+            var uploadPath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "SurveyForm");
+            string username = User.GetUsername()?.Replace(" ", "_") ?? "";
+
+            foreach (var form in SurveyForms)
+            {
+                var filePath = form.Path;
+                string originalFilePath = System.IO.Path.Combine(uploadPath, System.IO.Path.GetFileName(filePath));
+                //create user folder
+                var userFolder = System.IO.Path.Combine(uploadPath, username);
+                // Generate user specific filled file path
+                string filledFilePath = System.IO.Path.Combine(userFolder, System.IO.Path.GetFileName(filePath));
+                if (System.IO.File.Exists(filledFilePath))
+                {
+                    var uri = new Uri(filePath);
+                    var segments = uri.Segments.ToList();
+
+                    // segments will be: ["/", "api/", "SurveyForm/", "ud100.pdf"]
+
+                    // Insert username before the file name
+                    segments.Insert(segments.Count - 1, $"{username}/");
+
+                    // Rebuild the new path
+                    string newPath = string.Join("", segments);
+
+                    // Combine with original scheme and host
+                    string newUrl = $"{uri.Scheme}://{uri.Host}:{uri.Port}{newPath}";
+                    form.ClientPath = newUrl;
+                }
+            }
 
             return Ok(SurveyForms);
         }
@@ -46,7 +78,9 @@ namespace API.Controllers
             //fill survey form pdf
             foreach (var data in surveyFormDataDto)
             {
-                data.Key = surveyForm.SurveyFormDetails.Where(s => s.Id == data.SurveyFormDetailId).Select(s => s.Key).FirstOrDefault() ?? string.Empty;
+                var surveyFormDetail = surveyForm.SurveyFormDetails.FirstOrDefault(s => s.Id == data.SurveyFormDetailId);
+                if (surveyFormDetail != null)
+                    data.SurveyFormDetail = surveyFormDetail;
             }
 
             string path = FillSurveyFormData(surveyForm.Path, surveyFormDataDto);
@@ -95,7 +129,9 @@ namespace API.Controllers
             //fill survey form pdf
             foreach (var data in surveyFormDataDto)
             {
-                data.Key = surveyForm.SurveyFormDetails.Where(s => s.Id == data.SurveyFormDetailId).Select(s => s.Key).FirstOrDefault() ?? string.Empty;
+                var surveyFormDetail = surveyForm.SurveyFormDetails.FirstOrDefault(s => s.Id == data.SurveyFormDetailId);
+                if (surveyFormDetail != null)
+                    data.SurveyFormDetail = surveyFormDetail;
             }
             string path = FillSurveyFormData(surveyForm.Path, surveyFormDataDto);
 
@@ -115,20 +151,20 @@ namespace API.Controllers
 
         private static string FillSurveyFormData(string filePath, List<SurveyFormDataDto> formDataDto)
         {
-            var uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "SurveyForm");
-            string originalFilePath = Path.Combine(uploadPath, Path.GetFileName(filePath));
+            var uploadPath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "SurveyForm");
+            string originalFilePath = System.IO.Path.Combine(uploadPath, System.IO.Path.GetFileName(filePath));
             string username = formDataDto.FirstOrDefault().UserName.Replace(" ", "_");
             //create user folder
-            var userFolder = Path.Combine(uploadPath, username);
+            var userFolder = System.IO.Path.Combine(uploadPath, username);
             if (!Directory.Exists(userFolder))
                 Directory.CreateDirectory(userFolder);
 
             // Generate user specific filled file path
-            string filledFilePath = Path.Combine(userFolder, Path.GetFileName(filePath));
+            string filledFilePath = System.IO.Path.Combine(userFolder, System.IO.Path.GetFileName(filePath));
             // delete file if already exists
-            if (System.IO.File.Exists(filledFilePath)) 
+            if (System.IO.File.Exists(filledFilePath))
                 System.IO.File.Delete(filledFilePath);
-            
+
             // Use FileStreams manually
             using var input = new FileStream(originalFilePath, FileMode.Open, FileAccess.Read);
             using var output = new FileStream(filledFilePath, FileMode.Create, FileAccess.Write);
@@ -156,7 +192,7 @@ namespace API.Controllers
                         {
                             "Tx" => (field is PdfTextFormField t && t.IsMultiline()) ? "textarea" : "text",
                             "Ch" => "select",
-                            "Btn" => GetButtonType((PdfButtonFormField)field),
+                            "Btn" => PdfUtilityFunction.GetButtonType((PdfButtonFormField)field),
                             _ => "unknown"
                         };
 
@@ -164,7 +200,7 @@ namespace API.Controllers
                         if (type == "button") continue;
 
                         //get survey form data based on field key
-                        var data = formDataDto.Where(f => f.Key == fieldEntry.Key);
+                        var data = formDataDto.Where(f => f.SurveyFormDetail.Key == fieldEntry.Key);
                         if (data.Any())
                         {
                             string value = data.FirstOrDefault().Value ?? string.Empty;
@@ -192,17 +228,49 @@ namespace API.Controllers
                 // If no form fields, extract text from each page
                 else
                 {
+                    int pageNo = 0;
                     for (int i = 1; i <= document.GetNumberOfPages(); i++)
                     {
+                        pageNo = i;
                         var page = document.GetPage(i);
-                        // Extract text with position info
-                        var strategy = new LocationTextExtractionStrategy();
-                        var text = PdfTextExtractor.GetTextFromPage(page, strategy);
-                        foreach (var data in formDataDto)
+                        var strategy = new ChunkTrackingStrategy();
+                        PdfTextExtractor.GetTextFromPage(page, strategy);
+
+                        // Find and replace the tag
+                        foreach (var data in formDataDto.OrderBy(a => a.SurveyFormDetailId))
                         {
-                            if(text.Contains(data.Key))
+                            var surveyFormDetail = data.SurveyFormDetail;
+                            var canvas = new PdfCanvas(page);
+                            int occurance = 0;
+                            foreach (var item in formDataDto.OrderBy(a=>a.SurveyFormDetailId).Where(a => a.SurveyFormDetail.Key == surveyFormDetail.Key && pageNo.ToString() == surveyFormDetail.PageNo && a.SurveyFormDetail.PageNo == surveyFormDetail.PageNo))
                             {
-                                text = text.Replace(data.Key, data.Value);
+                                ++occurance;
+                                if (item.SurveyFormDetailId == surveyFormDetail.Id)
+                                    break;
+                            }
+                            
+                            PdfFont? fontName;
+                            float? fontSize;
+                            iText.Kernel.Geom.Rectangle rect = PdfUtilityFunction.GetTextCoordinates(page, surveyFormDetail.Key ?? string.Empty, occurance,
+                                out fontName, out fontSize);
+                            canvas.BeginMarkedContent(PdfName.Span);
+                            if (!surveyFormDetail.Key.Contains("__"))
+                                canvas.SaveState()
+                                      .SetFillColorRgb(1f, 1f, 1f)
+                                      .Rectangle(rect)
+                                      .Fill()
+                                      .RestoreState();
+                            canvas.EndMarkedContent();
+                            if (fontName != null)
+                            {
+                                // Write replacement
+                                canvas.SaveState()
+                                      .BeginText()
+                                      .SetFontAndSize(fontName, fontSize ?? 0)
+                                      .MoveText(rect.GetX(), rect.GetY() + 2)
+                                      .ShowText(data.Value)
+                                      .EndText()
+                                      .RestoreState();
                             }
                         }
                     }
@@ -210,6 +278,10 @@ namespace API.Controllers
                 //form.FlattenFields(); // Optional: make fields non-editable
                 document.Close();
             }
+            writer.Close();
+            reader.Close();
+            output.Close();
+            input.Close();
             //construct filled file path as absolute path from file path
             var uri = new Uri(filePath);
             var segments = uri.Segments.ToList();
@@ -225,23 +297,6 @@ namespace API.Controllers
             // Combine with original scheme and host
             string newUrl = $"{uri.Scheme}://{uri.Host}:{uri.Port}{newPath}";
             return newUrl;
-        }
-
-        private static string GetButtonType(PdfButtonFormField btn)
-        {
-            var ff = btn.GetPdfObject().GetAsNumber(PdfName.Ff);
-            long fieldFlags = ff != null ? ff.LongValue() : 0;
-
-            const int RADIO_FLAG = 1 << 15;
-            const int PUSHBUTTON_FLAG = 1 << 16;
-
-            if ((fieldFlags & PUSHBUTTON_FLAG) != 0)
-                return "button";
-
-            if ((fieldFlags & RADIO_FLAG) != 0)
-                return "radio";
-
-            return "checkbox";
         }
     }
 }

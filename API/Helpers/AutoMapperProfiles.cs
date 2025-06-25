@@ -26,10 +26,10 @@ namespace API.Helpers
                 .ForMember(dest => dest.SurveyFormDetails, opt => opt.MapFrom(src => src.SurveyFormDetails))
                 .PreserveReferences(); // Optional for circular graphs
             CreateMap<SurveyFormDetailDto, SurveyFormDetail>();
-            CreateMap<SurveyFormData, SurveyFormDataDto>().ReverseMap();
-
             CreateMap<SurveyFormData, SurveyFormDataDto>()
                 .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.User.UserName));
+            CreateMap<SurveyFormDataDto, SurveyFormData>()
+                .ForMember(dest => dest.SurveyFormDetail, opt => opt.Ignore());
             CreateMap<string, DateOnly>().ConvertUsing(s => DateOnly.Parse(s));
         }
     }

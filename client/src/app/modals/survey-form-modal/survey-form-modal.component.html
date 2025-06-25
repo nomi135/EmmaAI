@@ -57,7 +57,7 @@
                         <thead>
                             <tr>
                                 <th class="col-sm-1">Key</th>
-                                <th class="col-sm-2">Label</th>
+                                <th class="col-sm-1">Label</th>
                                 <th class="col-sm-1">Type</th>
                                 <th class="col-sm-1">Page No</th>
                                 <th class="col-sm-1">Left</th>
@@ -66,6 +66,7 @@
                                 <th class="col-sm-1">Height</th>
                                 <th class="col-sm-1">Font Family</th>
                                 <th class="col-sm-1">Font Size</th>
+                                <th class="col-sm-1" [hidden]="surveyForm.id == 0"></th>
                                 <th class="col-sm-1"></th>
                             </tr>
                         </thead>
@@ -117,6 +118,14 @@
                                         class="form-control" 
                                         style="width: 60px;"
                                         [(ngModel)] = "detail.fontSize" /></td>
+                                    <td [hidden]="surveyForm.id == 0">
+                                        <button 
+                                            type="button" 
+                                            (click)="getTextCoordinates(surveyForm.path, detail.pageNo, detail.key, detail.id)" 
+                                            class="btn btn-sm btn-info">
+                                            Coordinates
+                                        </button>
+                                    </td>
                                     <td>
                                         <button 
                                             type="button" 

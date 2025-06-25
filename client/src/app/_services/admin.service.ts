@@ -5,6 +5,7 @@ import { User } from '../_models/user';
 import { SurveyForm } from '../_models/survey-form';
 import { SurveyFormDetail } from '../_models/survey-form-detail';
 import { SurveyFormData } from '../_models/survey-form-data';
+import { TextCoordinates } from '../_models/text-coordinates';
 
 @Injectable({
   providedIn: 'root'
@@ -42,12 +43,17 @@ export class AdminService {
     return this.http.put(this.baseUrl + 'admin/update-survey-form', surveyForm);
   }
 
-  deleteSurveyForm(id : number) {
+  deleteSurveyForm(id: number) {
     return this.http.delete(this.baseUrl + 'admin/delete-survey-form/' + id);
   }
 
-  getCompletedSurveyForms(id : number) {
+  getCompletedSurveyForms(id: number) {
     return this.http.get<SurveyFormData[]>(this.baseUrl + 'admin/get-completed-survey-forms/' + id);
+  }
+
+  getTextCoordinates(filePath: string, pageNo: string, key: string, occurrence: number) {
+    return this.http.get<TextCoordinates>(this.baseUrl + 'admin/get-text-coordinates?filePath=' + filePath + '&pageNo=' + pageNo + 
+      '&key=' + key + '&occurrence=' + occurrence);
   }
 }
 

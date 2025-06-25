@@ -10,7 +10,7 @@
                     <tr>
                         <th style="width: 20%;">Form Title</th>
                         <th style="width: 20%;">Date Added</th>
-                        <th style="width: 40%;">Path</th>
+                        <th style="width: 40%;">Form Link</th>
                         <th style="width: 30%;"></th>
                     </tr>
                 </thead>
@@ -19,11 +19,16 @@
                         <tr>
                             <td>{{surveyForm.title}}</td>
                             <td>{{surveyForm.created | date:'dd/MM/yyyy hh:mm a'}}</td>
-                            <td>{{surveyForm.path}}</td>
+                            <td><a class="btn btn-sm btn-info" 
+                                [href]="surveyForm.clientPath && surveyForm.clientPath.length > 0 ? surveyForm.clientPath : surveyForm.path" 
+                                target="_blank">
+                                <i class="bi bi-file-pdf"></i> Open Form</a>
+                            </td>
                             <td><button type="button" 
                                 (click)="loadSurveyForm(surveyForm.id)" 
                                 class="btn btn-primary"> <i class="bi bi-pencil-square"></i> Fill Survey Form
-                                </button></td>
+                                </button>
+                            </td>
                         </tr>
                     }
                 </tbody>

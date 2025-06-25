@@ -6,10 +6,10 @@ using System.Text.RegularExpressions;
 using System.ComponentModel;
 using Microsoft.Extensions.Caching.Memory;
 using API.DTOs;
-using DocumentFormat.OpenXml.Packaging;
 using iText.Kernel.Pdf.Canvas.Parser.Listener;
 using iText.Kernel.Pdf.Canvas.Parser;
 using iText.Kernel.Pdf;
+using DocumentFormat.OpenXml.Packaging;
 
 namespace API.Services
 {

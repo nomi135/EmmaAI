@@ -22,6 +22,7 @@
                             @if (detail.type === "text") {
                                 <input type="text"
                                     [(ngModel)]="detail.value" 
+                                    (change)="onValueChanged(detail)"
                                     class="form-control"
                                     [name]="detail.key">
                             }

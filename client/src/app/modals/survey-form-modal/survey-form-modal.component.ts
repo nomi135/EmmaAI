@@ -33,6 +33,7 @@ export class SurveyFormModalComponent implements OnInit {
     created : new Date(),
     path : '',
     imagePath : '',
+    clientPath : '',
     surveyFormDetails : []
   }; 
   
@@ -62,6 +63,45 @@ export class SurveyFormModalComponent implements OnInit {
       next: surveyFormDetail => {
         this.spinnerService.hide('spinner-survey-form-detail');
         this.surveyForm.surveyFormDetails = surveyFormDetail;
+      },
+      error: error => {
+        this.spinnerService.hide('spinner-survey-form-detail');
+        let errorMsg = error[0];
+        if(errorMsg == null){
+          errorMsg = error.message;
+        } 
+        this.toastr.error(errorMsg);
+      }
+    })
+  }
+
+  getTextCoordinates(filePath: string, pageNo: string, key: string, id: number) {
+    let occurrence = 0;
+    
+    for (const a of this.surveyForm.surveyFormDetails.filter(d => d.key === key)) {
+      ++occurrence;
+      if (a.id === id) {
+        break; 
+      }
+    }
+      
+    this.spinnerService.show('spinner-survey-form-detail', {
+      type: 'line-scale-party',
+      bdColor: 'rgba(2555,2555,255,0)',
+      color: '#333333'
+    });
+    this.adminService.getTextCoordinates(filePath, pageNo, key, occurrence).subscribe({
+      next: textCoordinates => {
+        this.spinnerService.hide('spinner-survey-form-detail');
+        
+        this.surveyForm.surveyFormDetails.filter(a => a.key === key && a.id === id).forEach(a => {
+          a.left = textCoordinates.x;
+          a.top = textCoordinates.y;
+          a.width = textCoordinates.width;
+          a.height = textCoordinates.height;
+          a.fontName = textCoordinates.fontName;
+          a.fontSize = textCoordinates.fontSize;
+        });
       },
       error: error => {
         this.spinnerService.hide('spinner-survey-form-detail');

@@ -18,6 +18,8 @@ using iText.Kernel.Pdf.Annot;
 using System.Text.RegularExpressions;
 using SixLabors.ImageSharp;
 using API.Helpers;
+using iText.Kernel.Geom;
+using iText.Kernel.Font;
 
 namespace API.Controllers
 {
@@ -97,13 +99,13 @@ namespace API.Controllers
             }
 
             // Ensure folder exists
-            var uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "SurveyForm");
+            var uploadPath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "SurveyForm");
             if (!Directory.Exists(uploadPath))
                 Directory.CreateDirectory(uploadPath);
 
             // Generate unique file name
-            var uniqueFileName = $"{Path.GetFileName(file.FileName.Replace(" ", "_"))}";
-            var filePath = Path.Combine(uploadPath, uniqueFileName);
+            var uniqueFileName = $"{System.IO.Path.GetFileName(file.FileName.Replace(" ", "_"))}";
+            var filePath = System.IO.Path.Combine(uploadPath, uniqueFileName);
 
             // Save file to disk
             using (var stream = new FileStream(filePath, FileMode.Create))
@@ -193,7 +195,7 @@ namespace API.Controllers
                             foreach (var fieldEntry in form.GetFormFields())
                             {
                                 var rawKey = fieldEntry.Key;
-                                var label = GenerateLabelFromKey(rawKey);
+                                var label = PdfUtilityFunction.GenerateLabelFromKey(rawKey);
                                 var field = fieldEntry.Value;
                                 var fieldType = field.GetFormType()?.ToString().Replace("/", "");
 
@@ -228,7 +230,7 @@ namespace API.Controllers
                                     {
                                         "Tx" => (field is PdfTextFormField t && t.IsMultiline()) ? "textarea" : "text",
                                         "Ch" => "select",
-                                        "Btn" => GetButtonType((PdfButtonFormField)field),
+                                        "Btn" => PdfUtilityFunction.GetButtonType((PdfButtonFormField)field),
                                         _ => "unknown"
                                     };
 
@@ -263,7 +265,7 @@ namespace API.Controllers
                                 }
                             }
                             // 2. extract the prompt template to pass to LLM
-                            var promptFilePath = Path.Combine(AppContext.BaseDirectory, "Prompts", "SurveyFormPrompt.txt");
+                            var promptFilePath = System.IO.Path.Combine(AppContext.BaseDirectory, "Prompts", "SurveyFormPrompt.txt");
                             var promptTemplate = await System.IO.File.ReadAllTextAsync(promptFilePath);
 
                             // Replace {extractedText} placeholder dynamically
@@ -292,6 +294,19 @@ namespace API.Controllers
                                     {
                                         foreach (var item in parsed)
                                         {
+                                            PdfPage page = document.GetPage(int.Parse(item.PageNo ?? "0"));
+                                            int occurance = 0;
+                                            foreach (var a in surveyFormDetails.Where(a => a.Key == item.Key && a.PageNo == item.PageNo))
+                                            {
+                                                ++occurance;
+                                                if (a.Id == item.Id)
+                                                    break;
+                                            }
+                                            if (occurance == 0)
+                                                occurance = 1;
+                                            PdfFont? fontName;
+                                            float? fontSize;
+                                            iText.Kernel.Geom.Rectangle rect = PdfUtilityFunction.GetTextCoordinates(page, item.Key ?? "", occurance, out fontName, out fontSize);
                                             surveyFormDetails.Add(new SurveyFormDetailDto()
                                             {
                                                 Id = ++id,
@@ -299,12 +314,12 @@ namespace API.Controllers
                                                 Label = item.Label,
                                                 Type = item.Type,
                                                 PageNo = item.PageNo,
-                                                Top = item.Top,
-                                                Left = item.Left,
-                                                Width = item.Width,
-                                                Height = item.Height,
-                                                FontName = item.FontName,
-                                                FontSize = item.FontSize
+                                                Top = rect.GetY().ToString(),//item.Top,
+                                                Left = rect.GetX().ToString(),//item.Left,
+                                                Width = rect.GetWidth().ToString(),//item.Width,
+                                                Height = rect.GetHeight().ToString(),//item.Height,
+                                                FontName = fontName?.GetFontProgram().GetFontNames().GetFontName() ?? "Unknown",//item.FontName,
+                                                FontSize = fontSize.ToString(),//item.FontSize
                                             });
                                         }
                                     }
@@ -319,6 +334,44 @@ namespace API.Controllers
             }
 
             return Ok(surveyFormDetails);
+        }
+
+        [HttpGet("get-text-coordinates")]
+        public async Task<ActionResult<TextCoorinatesDto>> GetTextCoordinates([FromQuery] string filePath, [FromQuery] string pageNo, [FromQuery] string key, [FromQuery] int occurrence)
+        {
+            if (string.IsNullOrEmpty(filePath) || string.IsNullOrEmpty(pageNo) || string.IsNullOrEmpty(key))
+            {
+                return BadRequest("File path, page number, and key are required.");
+            }
+            TextCoorinatesDto coorinatesDto;
+            var uploadPath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "SurveyForm");
+            string originalFilePath = System.IO.Path.Combine(uploadPath, System.IO.Path.GetFileName(filePath));
+            using (var stream = System.IO.File.OpenRead(originalFilePath))
+            {
+                using (PdfReader reader = new PdfReader(stream))
+                {
+                    using (PdfDocument document = new PdfDocument(reader))
+                    {
+                        PdfPage page = document.GetPage(int.Parse(pageNo ?? "0"));
+                        PdfFont? fontName;
+                        float? fontSize;
+                        iText.Kernel.Geom.Rectangle rectangle = await Task.FromResult(PdfUtilityFunction.GetTextCoordinates(page, key, occurrence, out fontName, out fontSize));
+                        coorinatesDto = new TextCoorinatesDto()
+                        {
+                            X = rectangle.GetX().ToString(),
+                            Y = rectangle.GetY().ToString(),
+                            Width = rectangle.GetWidth().ToString(),
+                            Height = rectangle.GetHeight().ToString(),
+                            FontName = fontName?.GetFontProgram().GetFontNames().GetFontName() ?? "Unknown",
+                            FontSize = fontSize?.ToString() ?? "0"
+                        };
+                        document.Close();
+                    }
+                    reader.Close();
+                }
+                stream.Close();
+            }
+            return Ok(coorinatesDto);
         }
 
         [HttpDelete("delete-survey-form/{id}")]
@@ -351,63 +404,6 @@ namespace API.Controllers
             }
 
             return Ok(surveyFormData);
-        }
-
-        private static string GetButtonType(PdfButtonFormField btn)
-        {
-            var ff = btn.GetPdfObject().GetAsNumber(PdfName.Ff);
-            long fieldFlags = ff != null ? ff.LongValue() : 0;
-
-            const int RADIO_FLAG = 1 << 15;
-            const int PUSHBUTTON_FLAG = 1 << 16;
-
-            if ((fieldFlags & PUSHBUTTON_FLAG) != 0)
-                return "button";
-
-            if ((fieldFlags & RADIO_FLAG) != 0)
-                return "radio";
-
-            return "checkbox";
-        }
-
-        private static string GenerateLabelFromKey(string rawKey)
-        {
-            // Step 1: Split by dot
-            var segments = rawKey.Split('.');
-
-            // Step 2: Clean each part by removing [index]
-            var cleaned = segments
-                .Select(s =>
-                {
-                    var match = Regex.Match(s, @"^([^\[]+)(?:\[(\d+)\])?$");
-                    var name = match.Groups[1].Value;
-                    var index = match.Groups[2].Success ? $"_{match.Groups[2].Value}" : "";
-                    return (Name: name, Index: index);
-                })
-                .ToList();
-
-            // Step 3: Take the last two parts
-            if (cleaned.Count < 2) return ToLabel(cleaned.Last().Name + cleaned.Last().Index);
-
-            var secondLast = cleaned[^2];
-            var last = cleaned[^1];
-
-            // Step 4: Format
-            var label = $"{ToLabel(secondLast.Name)}: {ToLabel(last.Name)}{last.Index}";
-            return label;
-        }
-
-        private static string ToLabel(string input)
-        {
-            if (string.IsNullOrWhiteSpace(input)) return "";
-
-            input = input.Replace("_", " ");
-
-            // Add space before capital letters
-            input = Regex.Replace(input, @"(?<!^)([A-Z])", " $1");
-
-            // Collapse multiple spaces
-            return Regex.Replace(input, @"\s+", " ").Trim();
         }
 
     }

@@ -15,7 +15,7 @@
                         <tr>
                             <th class="col-sm-1">User</th>
                             <th class="col-sm-2">Completed On</th>
-                            <th class="col-sm-1">Download</th>
+                            <th class="col-sm-1">Form Link</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -24,7 +24,7 @@
                                <td>{{detail.userName}}</td>
                                <td>{{detail.dateCreated | date:'dd/MM/yyyy hh:mm a'}}</td>
                                <td><a href="{{detail.path}}" target="_blank" class="btn btn-sm btn-danger" title="download">
-                                <i class="bi bi-download"></i></a></td> 
+                                <i class="bi bi-file-pdf"></i> Open Form</a></td> 
                             </tr>
                         }
                     </tbody>

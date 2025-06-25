@@ -35,6 +35,7 @@ export class SurveyFormClientModalComponent implements OnInit {
     created : new Date(),
     path : '',
     imagePath : '',
+    clientPath : '',
     surveyFormDetails : []
   };
   private surveyFormData : SurveyFormData[] = [];
@@ -82,6 +83,14 @@ export class SurveyFormClientModalComponent implements OnInit {
   checkValue(values: any, detail: any) {
     detail.value = values.currentTarget.checked ? 'checked' : '';
   }
+
+  onValueChanged(detail: SurveyFormDetail) {
+    if(!detail.key.includes('______', 0)) {
+      this.surveyFormDetails.filter(a => a.key === detail.key).forEach(a => {
+        a.value = detail.value
+      });
+    }
+}
 
   previewChanges() {
     if(this.selectedPagePath === '') {
@@ -144,6 +153,11 @@ export class SurveyFormClientModalComponent implements OnInit {
       for (let detail of this.surveyFormDetails) {
         this.surveyFormData.filter(d => d.surveyFormDetailId === detail.id)[0].value = detail.value;
       }
+      this.spinnerService.show('spinner-survey-form-data', {
+        type: 'line-scale-party',
+        bdColor: 'rgba(2555,2555,255,0)',
+        color: '#333333'
+      });
       this.surveyService.updateSurveyFormData(this.surveyFormData).subscribe({
         next: _ => {
           this.formUpdated = true;

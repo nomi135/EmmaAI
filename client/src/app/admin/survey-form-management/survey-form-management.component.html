@@ -10,7 +10,7 @@
                 <tr>
                     <th class="col-sm-2">Form Title</th>
                     <th class="col-sm-2">Date Added</th>
-                    <th class="col-sm-4">Path</th>
+                    <th class="col-sm-4">Form Link</th>
                     <th class="col-sm-6"></th>
                 </tr>
             </thead>
@@ -19,7 +19,8 @@
                     <tr>
                         <td>{{surveyForm.title}}</td>
                         <td>{{surveyForm.created | date:'dd/MM/yyyy hh:mm a'}}</td>
-                        <td>{{surveyForm.path}}</td>
+                        <td><a class="btn btn-sm btn-info" href="{{surveyForm.path}}" target="_blank">
+                            <i class="bi bi-file-pdf"></i> Open Form</a></td>
                         <td>
                             <button (click)="openCompletedFormModal(surveyForm.id, surveyForm.title)" class="btn btn-success">
                                 <i class="bi bi-file-check-fill"></i> Completed Forms</button> |

@@ -39,7 +39,14 @@ namespace API
             app.UseAuthorization();
 
             app.UseDefaultFiles();
-            app.UseStaticFiles();
+            app.UseStaticFiles(new StaticFileOptions
+            {
+                OnPrepareResponse = ctx =>
+                {
+                    ctx.Context.Response.Headers.Append("Access-Control-Allow-Origin", "http://localhost:4200");
+                    ctx.Context.Response.Headers.Append("Access-Control-Allow-Credentials", "true");
+                }
+            });
 
             app.MapControllers();
             app.MapFallbackToController("Index", "Fallback");
