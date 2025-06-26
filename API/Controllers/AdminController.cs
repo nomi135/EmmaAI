@@ -398,7 +398,7 @@ namespace API.Controllers
 
             if (surveyFormData.Count > 0)
             {
-                surveyFormData = surveyFormData.GroupBy(s => s.UserId)
+                surveyFormData = surveyFormData.GroupBy(s => s.UserName)
                     .Select(g => g.First())
                     .ToList();
             }
