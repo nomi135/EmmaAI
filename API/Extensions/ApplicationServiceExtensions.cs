@@ -9,9 +9,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Connectors.AzureOpenAI;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
-using Polly.CircuitBreaker;
-using Polly.Retry;
 using Polly;
+using System.Threading.RateLimiting;
 
 namespace API.Extensions
 {
@@ -50,7 +49,7 @@ namespace API.Extensions
             services.AddScoped<ISurveyFormDataRepository, SurveyFormDataRepository>();
             services.AddScoped<IReminderRepository, ReminderRepository>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
-            services.AddHangfire(cnfg => 
+            services.AddHangfire(cnfg =>
                 cnfg.SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
                 .UseSimpleAssemblyNameTypeSerializer()
                 .UseRecommendedSerializerSettings()
@@ -105,10 +104,28 @@ namespace API.Extensions
 
             // Register AzureOpenAIPromptExecutionSettings
             services.AddSingleton(new AzureOpenAIPromptExecutionSettings
-            { 
-                MaxTokens = 4096, Temperature = 0.5, TopP = 0.8, 
+            {
+                MaxTokens = 4096,
+                Temperature = 0.5,
+                TopP = 0.8,
                 ToolCallBehavior = ToolCallBehavior.AutoInvokeKernelFunctions
             });
+
+            //add rate limit
+            services.AddRateLimiter(options =>
+            {
+                options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
+                RateLimitPartition.GetFixedWindowLimiter(
+                    partitionKey: httpContext.User.Identity?.Name ?? httpContext.Request.Headers.Host.ToString(),
+                    factory: partition => new FixedWindowRateLimiterOptions
+                    {
+                        AutoReplenishment = true,
+                        PermitLimit = 100,
+                        QueueLimit = 0,
+                        Window = TimeSpan.FromMinutes(1)
+                    }));
+            });
+            
             //AI agent services
 
             return services;
